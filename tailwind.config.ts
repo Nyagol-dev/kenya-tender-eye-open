@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				kenya: {
+					'green': '#006600',
+					'red': '#bb0000',
+					'black': '#000000',
+					'white': '#ffffff'
 				}
 			},
 			borderRadius: {
