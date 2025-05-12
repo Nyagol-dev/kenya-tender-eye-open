@@ -40,7 +40,7 @@ const TenderList = ({ tenders }: TenderListProps) => {
               <SelectValue placeholder="All Sectors" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Sectors</SelectItem>
+              <SelectItem value="all">All Sectors</SelectItem>
               {sectors.map(sector => (
                 <SelectItem key={sector} value={sector}>
                   {sector}
@@ -55,7 +55,7 @@ const TenderList = ({ tenders }: TenderListProps) => {
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="under-review">Under Review</SelectItem>
               <SelectItem value="awarded">Awarded</SelectItem>
