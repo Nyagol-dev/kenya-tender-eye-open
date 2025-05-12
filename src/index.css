@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -88,6 +89,37 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  /* High contrast mode styles */
+  .high-contrast {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 80%;
+
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 40%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 100%;
+  }
 }
 
 @layer base {
@@ -98,4 +130,37 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Default text size is 'text-base' */
+html.text-sm {
+  font-size: 14px;
+}
+
+html.text-base {
+  font-size: 16px;
+}
+
+html.text-lg {
+  font-size: 18px;
+}
+
+html.text-xl {
+  font-size: 20px;
+}
+
+/* Additional high contrast styles */
+.high-contrast a {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.high-contrast button:not([disabled]),
+.high-contrast [role="button"]:not([disabled]) {
+  border: 2px solid hsl(var(--foreground));
+}
+
+.high-contrast :focus {
+  outline: 4px solid yellow;
+  outline-offset: 2px;
 }

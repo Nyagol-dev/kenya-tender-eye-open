@@ -1,6 +1,7 @@
 
 import Navbar from './Navbar';
 import { ReactNode } from 'react';
+import AccessibilityToggle from '../accessibility/AccessibilityToggle';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -16,7 +17,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       <footer className="border-t border-kenya-black/10 bg-white py-6">
         <div className="container flex flex-col md:flex-row items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Republic of Kenya. All rights reserved.
+            © {new Date().getFullYear()} Republic of Kenya. All rights reserved. Developed by Nickson.
           </p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
@@ -31,6 +32,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           </div>
         </div>
       </footer>
+      <AccessibilityToggle />
     </div>
   );
 };
