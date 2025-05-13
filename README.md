@@ -1,4 +1,4 @@
-# Welcome to your Lovable project
+# The kenya procurement system
 
 ## Project info
 
