@@ -2,6 +2,7 @@
 import Navbar from './Navbar';
 import { ReactNode } from 'react';
 import AccessibilityToggle from '../accessibility/AccessibilityToggle';
+import { Link } from 'react-router-dom';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -20,6 +21,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             © {new Date().getFullYear()} Republic of Kenya. All rights reserved. Developed by Nickson.
           </p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
+            <Link to="/documentation" className="text-sm text-muted-foreground hover:text-foreground">
+              Documentation
+            </Link>
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
               Privacy
             </a>
