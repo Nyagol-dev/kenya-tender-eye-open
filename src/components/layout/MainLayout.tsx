@@ -24,6 +24,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             <Link to="/documentation" className="text-sm text-muted-foreground hover:text-foreground">
               Documentation
             </Link>
+            <Link to="/flowchart" className="text-sm text-muted-foreground hover:text-foreground">
+              Flowchart
+            </Link>
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
               Privacy
             </a>
