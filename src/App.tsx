@@ -9,6 +9,7 @@ import TendersPage from "./pages/TendersPage";
 import TenderDetailPage from "./pages/TenderDetailPage";
 import SuppliersPage from "./pages/SuppliersPage";
 import AboutPage from "./pages/AboutPage";
+import DocumentationPage from "./pages/DocumentationPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/tenders/:id" element={<TenderDetailPage />} />
           <Route path="/suppliers" element={<SuppliersPage />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/documentation" element={<DocumentationPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
