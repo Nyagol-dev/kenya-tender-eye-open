@@ -5,6 +5,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import flowchartPdf from "/flowchart.pdf";
 import systemFlowchart from "/system-flowchart.png";
+import { Link } from "react-router-dom";
 
 const DocumentationPage = () => {
   return (
@@ -29,12 +30,18 @@ const DocumentationPage = () => {
               className="max-w-full rounded-lg shadow-md mb-6 border"
             />
             
-            <div className="text-center">
+            <div className="flex gap-4 flex-col sm:flex-row justify-center">
               <Button className="flex items-center gap-2" asChild>
                 <a href={flowchartPdf} download="kenya-eprocurement-flowchart.pdf">
                   <FileDown className="h-4 w-4" />
                   Download Flowchart PDF
                 </a>
+              </Button>
+              
+              <Button variant="outline" asChild>
+                <Link to="/flowchart">
+                  View Interactive Flowchart
+                </Link>
               </Button>
             </div>
           </CardContent>
