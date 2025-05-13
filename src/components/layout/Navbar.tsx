@@ -36,9 +36,6 @@ const Navbar = () => {
               <Link to="/suppliers">Suppliers</Link>
             </Button>
             <Button variant="ghost" asChild>
-              <Link to="/flowchart">Flowchart</Link>
-            </Button>
-            <Button variant="ghost" asChild>
               <Link to="/about">About</Link>
             </Button>
           </nav>
