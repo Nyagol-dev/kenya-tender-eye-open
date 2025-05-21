@@ -9,7 +9,137 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          entity_name: string | null
+          full_name: string | null
+          id: string
+          location: string | null
+          registration_number: string | null
+          service_category_id: string | null
+          supplier_status:
+            | Database["public"]["Enums"]["supplier_status_type"]
+            | null
+          updated_at: string
+          user_type: Database["public"]["Enums"]["user_role_type"]
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          entity_name?: string | null
+          full_name?: string | null
+          id: string
+          location?: string | null
+          registration_number?: string | null
+          service_category_id?: string | null
+          supplier_status?:
+            | Database["public"]["Enums"]["supplier_status_type"]
+            | null
+          updated_at?: string
+          user_type: Database["public"]["Enums"]["user_role_type"]
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          entity_name?: string | null
+          full_name?: string | null
+          id?: string
+          location?: string | null
+          registration_number?: string | null
+          service_category_id?: string | null
+          supplier_status?:
+            | Database["public"]["Enums"]["supplier_status_type"]
+            | null
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_role_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_service_category_id_fkey"
+            columns: ["service_category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      tenders: {
+        Row: {
+          closing_date: string
+          created_at: string
+          description: string | null
+          id: string
+          issuing_entity_profile_id: string
+          reference_number: string
+          service_category_id: string
+          status: Database["public"]["Enums"]["tender_status_type"]
+          title: string
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          closing_date: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          issuing_entity_profile_id: string
+          reference_number: string
+          service_category_id: string
+          status?: Database["public"]["Enums"]["tender_status_type"]
+          title: string
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          closing_date?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          issuing_entity_profile_id?: string
+          reference_number?: string
+          service_category_id?: string
+          status?: Database["public"]["Enums"]["tender_status_type"]
+          title?: string
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenders_issuing_entity_profile_id_fkey"
+            columns: ["issuing_entity_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenders_service_category_id_fkey"
+            columns: ["service_category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +148,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      supplier_status_type: "active" | "suspended" | "blacklisted"
+      tender_status_type:
+        | "open"
+        | "under_review"
+        | "awarded"
+        | "completed"
+        | "cancelled"
+      user_role_type: "supplier" | "government_entity"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +270,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      supplier_status_type: ["active", "suspended", "blacklisted"],
+      tender_status_type: [
+        "open",
+        "under_review",
+        "awarded",
+        "completed",
+        "cancelled",
+      ],
+      user_role_type: ["supplier", "government_entity"],
+    },
   },
 } as const
