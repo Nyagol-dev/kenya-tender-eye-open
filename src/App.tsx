@@ -21,14 +21,14 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider> {/* Wrap with AuthProvider */}
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+      <BrowserRouter> {/* BrowserRouter now wraps AuthProvider */}
+        <AuthProvider> {/* AuthProvider is now a child of BrowserRouter */}
+          <Toaster />
+          <Sonner />
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<AuthPage />} /> {/* Add AuthPage route */}
-            <Route path="/profile" element={<ProfilePage />} /> {/* Add ProfilePage route */}
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/tenders" element={<TendersPage />} />
             <Route path="/tenders/:id" element={<TenderDetailPage />} />
             <Route path="/suppliers" element={<SuppliersPage />} />
@@ -36,10 +36,11 @@ const App = () => (
             <Route path="/documentation" element={<DocumentationPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
+
