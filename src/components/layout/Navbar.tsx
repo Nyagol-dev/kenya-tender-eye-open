@@ -1,10 +1,21 @@
 
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import { Search, UserCircle, LogOut, LogIn } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
+  const { user, signOut, loadingInitial } = useAuth(); // Get user and signOut from context
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-kenya-black/10 bg-white">
       <div className="container flex h-16 items-center">
@@ -28,16 +39,57 @@ const Navbar = () => {
               className="w-full pl-8"
             />
           </div>
-          <nav className="flex items-center space-x-2">
-            <Button variant="ghost" asChild>
+          <nav className="flex items-center space-x-2 md:space-x-4">
+            <Button variant="ghost" asChild className="hidden sm:inline-flex">
               <Link to="/tenders">Tenders</Link>
             </Button>
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" asChild className="hidden sm:inline-flex">
               <Link to="/suppliers">Suppliers</Link>
             </Button>
-            <Button variant="ghost" asChild>
+            <Button variant="ghost" asChild className="hidden md:inline-flex">
               <Link to="/about">About</Link>
             </Button>
+            
+            {loadingInitial ? (
+              <div className="h-8 w-20 animate-pulse bg-gray-200 rounded-md"></div>
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <UserCircle className="h-6 w-6" />
+                    <span className="sr-only">User menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="sm:hidden" asChild>
+                     <Link to="/tenders">Tenders</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="sm:hidden" asChild>
+                     <Link to="/suppliers">Suppliers</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="md:hidden" asChild>
+                     <Link to="/about">About</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button asChild>
+                <Link to="/auth">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Login/Sign Up
+                </Link>
+              </Button>
+            )}
           </nav>
         </div>
       </div>
