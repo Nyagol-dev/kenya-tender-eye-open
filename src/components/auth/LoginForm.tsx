@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { SignInParams } from '@/types/auth'; // Import SignInParams
 
 const LoginForm = () => {
   const { signInWithPassword } = useAuth();
@@ -24,7 +25,12 @@ const LoginForm = () => {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true);
     try {
-      await signInWithPassword(values);
+      // Ensure the object passed to signInWithPassword strictly matches SignInParams
+      const params: SignInParams = {
+        email: values.email,
+        password_1: values.password_1,
+      };
+      await signInWithPassword(params);
       // Navigation is handled by signInWithPassword on success
     } catch (error) {
       // Error toast is handled by signInWithPassword
@@ -79,3 +85,4 @@ const LoginForm = () => {
 };
 
 export default LoginForm;
+
