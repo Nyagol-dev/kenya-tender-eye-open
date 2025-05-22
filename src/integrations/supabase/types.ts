@@ -16,6 +16,7 @@ export type Database = {
           entity_name: string | null
           full_name: string | null
           id: string
+          is_admin: boolean
           location: string | null
           registration_number: string | null
           service_category_id: string | null
@@ -31,6 +32,7 @@ export type Database = {
           entity_name?: string | null
           full_name?: string | null
           id: string
+          is_admin?: boolean
           location?: string | null
           registration_number?: string | null
           service_category_id?: string | null
@@ -46,6 +48,7 @@ export type Database = {
           entity_name?: string | null
           full_name?: string | null
           id?: string
+          is_admin?: boolean
           location?: string | null
           registration_number?: string | null
           service_category_id?: string | null

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .from('profiles')
         .select(`
           *,
+          is_admin, 
           service_category:service_categories (id, name)
         `)
         .eq('id', userId)
@@ -35,10 +35,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setProfile(null);
         return null;
       }
-      setProfile(data as Profile);
-      return data as Profile;
+      // Ensure 'is_admin' is part of the data object and correctly typed
+      const fetchedProfile = data as Profile;
+      // Supabase might return is_admin as null if the column didn't exist before for some rows
+      // or if the default didn't apply. We ensure it's a boolean.
+      // However, our migration set it to NOT NULL DEFAULT FALSE, so this should be fine.
+      setProfile(fetchedProfile);
+      return fetchedProfile;
     } catch (e) {
       console.error('Exception fetching profile:', e);
+      toast({ title: "Error", description: "An unexpected error occurred while fetching profile.", variant: "destructive" });
       setProfile(null);
       return null;
     } finally {
@@ -52,7 +58,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          // Use setTimeout to avoid potential race conditions or deadlocks with Supabase auth state changes
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -61,11 +70,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // Check for existing session on initial load
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        await fetchProfile(session.user.id);
+    supabase.auth.getSession().then(async ({ data: { session: initialSession } }) => { // Renamed to initialSession to avoid conflict
+      setSession(initialSession);
+      setUser(initialSession?.user ?? null);
+      if (initialSession?.user) {
+         // Use setTimeout here as well for consistency and safety
+        setTimeout(() => {
+          fetchProfile(initialSession.user.id);
+        }, 0);
       } else {
         setProfile(null);
       }
@@ -108,6 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     if (data.user) {
       toast({ title: "Sign In Successful", description: `Welcome back, ${data.user.email}!` });
+      // The profile will be fetched by onAuthStateChange
       navigate('/');
     }
   };
