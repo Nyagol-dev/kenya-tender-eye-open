@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge"; // Import Badge
 
 const ProfilePage = () => {
   const { user, profile, loadingInitial, loadingProfile, signOut } = useAuth();
@@ -40,7 +41,10 @@ const ProfilePage = () => {
       <div className="container py-8">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle>Your Profile</CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle>Your Profile</CardTitle>
+              {profile.is_admin && <Badge variant="destructive">Admin</Badge>}
+            </div>
             <CardDescription>Manage your account details.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -58,6 +62,8 @@ const ProfilePage = () => {
             {profile.user_type === 'government_entity' && (
               <p><strong>Entity Name:</strong> {profile.entity_name || 'Not set'}</p>
             )}
+            {/* Display admin status if not already shown as a badge or for clarity */}
+            {/* <p><strong>Administrator:</strong> {profile.is_admin ? 'Yes' : 'No'}</p> */}
             <Button variant="outline" onClick={signOut} className="mr-2">
               Logout
             </Button>
@@ -71,3 +77,4 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
+

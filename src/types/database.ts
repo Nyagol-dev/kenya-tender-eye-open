@@ -15,6 +15,7 @@ export interface Profile {
   location?: string | null;
   supplier_status?: 'active' | 'suspended' | 'blacklisted' | null;
   entity_name?: string | null;
+  is_admin: boolean; // Added is_admin field
   created_at: string; // TIMESTAMPTZ
   updated_at: string; // TIMESTAMPTZ
 }
