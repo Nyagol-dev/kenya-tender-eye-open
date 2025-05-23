@@ -31,7 +31,7 @@ const data = [
 
 const SectorDistribution = () => {
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-full md:col-span-2">
       <CardHeader>
         <CardTitle>Tender Distribution by Sector</CardTitle>
       </CardHeader>
@@ -43,13 +43,13 @@ const SectorDistribution = () => {
             margin={{
               top: 5,
               right: 30,
-              left: 50,
+              left: 50, // Adjusted left margin to ensure YAxis labels are fully visible
               bottom: 5,
             }}
           >
             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
             <XAxis type="number" />
-            <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={100} />
+            <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={100} interval={0} /> {/* Added interval={0} to ensure all labels are shown if space permits */}
             <Tooltip />
             <Bar dataKey="value" fill="#bb0000" barSize={20} />
           </BarChart>
