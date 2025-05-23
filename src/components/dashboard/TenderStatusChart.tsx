@@ -11,7 +11,7 @@ const data = [
 
 const TenderStatusChart = () => {
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-full md:col-span-2">
       <CardHeader>
         <CardTitle>Tender Status</CardTitle>
       </CardHeader>
