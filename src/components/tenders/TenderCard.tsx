@@ -28,12 +28,12 @@ const TenderCard = ({ tender }: TenderCardProps) => {
   }).format(tender.value);
 
   return (
-    <Card className="h-full flex flex-col">
+    <Card className="h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1 group">
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">{tender.reference}</p>
-            <h3 className="font-semibold leading-tight text-lg">{tender.title}</h3>
+            <h3 className="font-semibold leading-tight text-lg transition-colors duration-300 group-hover:text-primary">{tender.title}</h3>
           </div>
           <TenderStatusBadge status={tender.status} />
         </div>
@@ -59,7 +59,7 @@ const TenderCard = ({ tender }: TenderCardProps) => {
         </div>
       </CardContent>
       <CardFooter className="pt-3">
-        <Button variant="outline" asChild className="w-full">
+        <Button variant="outline" asChild className="w-full transition-all duration-200 hover:scale-105 hover:shadow-md">
           <Link to={`/tenders/${tender.id}`}>View Details</Link>
         </Button>
       </CardFooter>

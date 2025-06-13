@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { useState } from 'react';
 
 const data = [
   {
@@ -30,8 +31,18 @@ const data = [
 ];
 
 const SectorDistribution = () => {
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  const onBarEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
+  const onBarLeave = () => {
+    setActiveIndex(-1);
+  };
+
   return (
-    <Card className="col-span-full md:col-span-2">
+    <Card className="col-span-full md:col-span-2 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1">
       <CardHeader>
         <CardTitle>Tender Distribution by Sector</CardTitle>
       </CardHeader>
@@ -43,15 +54,39 @@ const SectorDistribution = () => {
             margin={{
               top: 5,
               right: 30,
-              left: 50, // Adjusted left margin to ensure YAxis labels are fully visible
+              left: 50,
               bottom: 5,
             }}
+            onMouseEnter={onBarEnter}
+            onMouseLeave={onBarLeave}
           >
             <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
             <XAxis type="number" />
-            <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={100} interval={0} /> {/* Added interval={0} to ensure all labels are shown if space permits */}
-            <Tooltip />
-            <Bar dataKey="value" fill="#bb0000" barSize={20} />
+            <YAxis dataKey="name" type="category" tick={{ fontSize: 11 }} width={100} interval={0} />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: "rgba(255, 255, 255, 0.95)",
+                border: "1px solid #e2e8f0",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+              }}
+            />
+            <Bar 
+              dataKey="value" 
+              barSize={20}
+              animationDuration={1000}
+              animationBegin={0}
+            >
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`}
+                  fill={activeIndex === index ? "#990000" : "#bb0000"}
+                  style={{
+                    transition: "all 0.3s ease-in-out"
+                  }}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

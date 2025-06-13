@@ -24,7 +24,7 @@ const TenderChart = () => {
   const [view, setView] = useState<ChartView>("tenders");
   
   return (
-    <Card className="col-span-4">
+    <Card className="col-span-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:-translate-y-1">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Tender Activity</CardTitle>
         <div className="flex items-center space-x-2">
@@ -32,6 +32,7 @@ const TenderChart = () => {
             variant={view === "tenders" ? "default" : "outline"} 
             size="sm"
             onClick={() => setView("tenders")}
+            className="transition-all duration-200 hover:scale-105 hover:shadow-md"
           >
             Count
           </Button>
@@ -39,6 +40,7 @@ const TenderChart = () => {
             variant={view === "value" ? "default" : "outline"} 
             size="sm"
             onClick={() => setView("value")}
+            className="transition-all duration-200 hover:scale-105 hover:shadow-md"
           >
             Value (M KSh)
           </Button>
@@ -51,20 +53,42 @@ const TenderChart = () => {
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="month" axisLine={false} tickLine={false} />
               <YAxis axisLine={false} tickLine={false} />
-              <Tooltip />
-              <Bar dataKey="tenders" fill="#006600" radius={[4, 4, 0, 0]} />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                }}
+              />
+              <Bar 
+                dataKey="tenders" 
+                fill="#006600" 
+                radius={[4, 4, 0, 0]}
+                animationDuration={1000}
+                animationBegin={0}
+              />
             </BarChart>
           ) : (
             <AreaChart data={tenderData}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="month" axisLine={false} tickLine={false} />
               <YAxis axisLine={false} tickLine={false} />
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+                }}
+              />
               <Area
                 type="monotone"
                 dataKey="value"
                 stroke="#bb0000"
                 fill="#bb000020"
+                animationDuration={1000}
+                animationBegin={0}
               />
             </AreaChart>
           )}
