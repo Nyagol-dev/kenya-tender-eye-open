@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 interface Supplier {
-  id: string;
+  id: string; 
   name: string;
   category: string;
   location: string;
