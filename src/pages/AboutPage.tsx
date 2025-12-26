@@ -25,8 +25,8 @@ const AboutPage = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p>
-                  The Kenya e-Procurement System is a digital platform designed to streamline the entire government procurement process, 
-                  from tender publication to contract award and implementation. The system promotes transparency, reduces procurement 
+                 The Kenya e-Procurement System is a digital platform designed to streamline the entire government procurement process, 
+                 from tender publication to contract award and implementation. The system promotes transparency, reduces procurement 
                   costs, and enhances efficiency in public spending.
                 </p>
                 
