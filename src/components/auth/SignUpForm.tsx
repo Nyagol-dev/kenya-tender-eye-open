@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { api } from '@/lib/api';
 import { ServiceCategory, SignUpParams } from '@/types/auth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from "@/components/ui/use-toast";
@@ -37,12 +37,12 @@ const SignUpForm = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const { data, error } = await supabase.from('service_categories').select('*');
-      if (error) {
+      try {
+        const data = await api.get<ServiceCategory[]>('/service-categories');
+        setServiceCategories(data);
+      } catch (error) {
         console.error('Error fetching service categories:', error);
         toast({ title: "Error", description: "Could not load service categories.", variant: "destructive" });
-      } else {
-        setServiceCategories(data as ServiceCategory[]);
       }
     };
     fetchCategories();

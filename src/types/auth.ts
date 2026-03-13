@@ -1,9 +1,13 @@
-import { Session, User } from "@supabase/supabase-js";
 import { Profile, ServiceCategory } from "./database";
+
+export interface User {
+  id: string;
+  email: string;
+}
 
 export interface AuthContextType {
   user: User | null;
-  session: Session | null;
+  token: string | null;
   profile: Profile | null;
   loadingInitial: boolean;
   loadingProfile: boolean;
@@ -19,8 +23,8 @@ export interface SignUpData {
   password_2: string;
   user_type: 'supplier' | 'government_entity';
   full_name: string;
-  service_category_id?: string; // For suppliers
-  entity_name?: string; // For government entities
+  service_category_id?: string;
+  entity_name?: string;
 }
 
 export interface SignUpParams {
