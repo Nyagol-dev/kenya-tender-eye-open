@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/profiles");
 const serviceCategoryRoutes = require("./routes/serviceCategories");
+const tenderRoutes = require("./routes/tenders");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -36,6 +37,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/service-categories", serviceCategoryRoutes);
+app.use("/api/tenders", tenderRoutes);
 
 // --------------- Health check ---------------
 app.get("/api/health", (_req, res) => {

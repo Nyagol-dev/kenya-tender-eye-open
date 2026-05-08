@@ -71,3 +71,36 @@ export const api = {
     request<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };
+
+export interface GetTendersParams {
+  q?: string;
+  sector?: string;
+  status?: string;
+  min_value?: number;
+  max_value?: number;
+  page?: number;
+  limit?: number;
+}
+
+export interface TenderListResponse {
+  data: any[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export async function getTenders(params: GetTendersParams = {}): Promise<TenderListResponse> {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      searchParams.append(key, String(value));
+    }
+  });
+  const queryString = searchParams.toString();
+  const url = queryString ? `/tenders?${queryString}` : '/tenders';
+  return api.get<TenderListResponse>(url);
+}
+
+export async function getTenderById(id: string): Promise<any> {
+  return api.get<any>(`/tenders/${id}`);
+}
