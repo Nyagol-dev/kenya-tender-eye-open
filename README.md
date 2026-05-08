@@ -319,3 +319,18 @@ location /api/ {
     proxy_set_header X-Real-IP $remote_addr;
 }
 ```
+
+## Enhanced Codebase Overview
+
+The project has evolved significantly with the following enhancements:
+
+- **OpenAPI 3.0 Documentation**: Comprehensive API specs now live in `server/docs/openapi.yaml`, covering authentication, tenders, notifications, and more.
+- **Tender Search API**: Advanced full‑text search and filtering capabilities added via new `tenderController` and `/api/tenders` endpoints.
+- **Notification System**: Real‑time tender notifications with user preferences, backed by new database tables and REST endpoints.
+- **JWT Refresh Tokens**: Secure refresh‑token flow implemented with HTTP‑only cookies and rotation logic.
+- **Database Migrations**: Cleaned up migration history, added `refresh_tokens` table, and resolved redundancy issues.
+- **Structured Logging**: Winston logger integrated for consistent request and error logging.
+- **Security Hardenings**: Centralized error handling, input validation middleware, and rate‑limiting for auth routes.
+- **Frontend Improvements**: Active navigation styling, enhanced profile details, and dynamic tender listings fetched from the new API.
+
+These updates improve reliability, security, and developer experience while keeping the application feature‑rich and production‑ready.
