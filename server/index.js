@@ -8,6 +8,7 @@ const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/profiles");
 const serviceCategoryRoutes = require("./routes/serviceCategories");
 const tenderRoutes = require("./routes/tenders");
+const notificationRoutes = require("./routes/notifications");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/service-categories", serviceCategoryRoutes);
 app.use("/api/tenders", tenderRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // --------------- Health check ---------------
 app.get("/api/health", (_req, res) => {
@@ -48,6 +50,11 @@ app.get("/api/health", (_req, res) => {
 app.use(errorHandler);
 
 // --------------- Start ---------------
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+});
+
+const pool = require('./db/pool');
+process.on('SIGTERM', () => { 
+  server.close(() => { pool.end(); process.exit(0); }) 
 });

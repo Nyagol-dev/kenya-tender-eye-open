@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Search, UserCircle, LogOut, LogIn } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { NotificationBell } from './NotificationBell';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,13 +54,15 @@ const Navbar = () => {
             {loadingInitial ? (
               <div className="h-8 w-20 animate-pulse bg-gray-200 rounded-md"></div>
             ) : user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <UserCircle className="h-6 w-6" />
-                    <span className="sr-only">User menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
+              <div className="flex items-center space-x-2">
+                <NotificationBell />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="rounded-full">
+                      <UserCircle className="h-6 w-6" />
+                      <span className="sr-only">User menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -82,6 +85,7 @@ const Navbar = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </div>
             ) : (
               <Button asChild>
                 <Link to="/auth">

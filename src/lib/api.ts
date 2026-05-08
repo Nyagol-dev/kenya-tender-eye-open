@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL ?? "/api";
+import { config } from "../config/env";
+
+const API_URL = config.apiUrl;
 
 let accessToken: string | null = null;
 
