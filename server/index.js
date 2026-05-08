@@ -1,60 +1,61 @@
-require("dotenv").config();
+// NOTE: run: npm install cookie-parser
+require('dotenv').config();
 
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const logger = require('./lib/logger');
+const pool = require('./db/pool');
 
-const authRoutes = require("./routes/auth");
-const profileRoutes = require("./routes/profiles");
-const serviceCategoryRoutes = require("./routes/serviceCategories");
-const tenderRoutes = require("./routes/tenders");
-const notificationRoutes = require("./routes/notifications");
-const errorHandler = require("./middleware/errorHandler");
+const authRoutes = require('./routes/auth');
+const profileRoutes = require('./routes/profiles');
+const serviceCategoryRoutes = require('./routes/serviceCategories');
+const tenderRoutes = require('./routes/tenders');
+const notificationRoutes = require('./routes/notifications');
+
+const authenticate = require('./middleware/authenticate');
+const errorHandler = require('./middleware/errorHandler');
+const rateLimit = require('./middleware/rateLimit');
+const cookieParser = require('cookie-parser');
 
 const app = express();
-const logger = require('./lib/logger');
-// Request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    logger.info({ method: req.method, url: req.originalUrl, status: res.statusCode, duration }, 'HTTP request');
-  });
-  next();
-});
-const PORT = process.env.PORT || 5000;
 
-// --------------- Middleware ---------------
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:8080",
-    credentials: true,
-  }),
-);
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// --------------- Routes ---------------
-app.use("/api/auth", authRoutes);
-app.use("/api/profiles", profileRoutes);
-app.use("/api/service-categories", serviceCategoryRoutes);
-app.use("/api/tenders", tenderRoutes);
-app.use("/api/notifications", notificationRoutes);
-
-// --------------- Health check ---------------
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok" });
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    logger.info({ 
+      method: req.method, 
+      url: req.url, 
+      status: res.statusCode, 
+      ms: Date.now() - start 
+    });
+  });
+  next();
 });
 
-// --------------- Centralized error handler (MUST be last) ---------------
+app.use('/api/auth/login', rateLimit);
+app.use('/api/auth/signup', rateLimit);
+
+app.use('/api/auth', authRoutes);
+app.use('/api/profiles', profileRoutes);
+app.use('/api/service-categories', serviceCategoryRoutes);
+app.use('/api/tenders', tenderRoutes);
+app.use('/api/notifications', notificationRoutes);
+
+app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+
 app.use(errorHandler);
 
-// --------------- Start ---------------
-const server = app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, () => logger.info(`Server on port ${PORT}`));
 
-const pool = require('./db/pool');
-process.on('SIGTERM', () => { 
-  server.close(() => { pool.end(); process.exit(0); }) 
+process.on('SIGTERM', () => {
+  server.close(() => { 
+    pool.end(); 
+    process.exit(0); 
+  });
 });
