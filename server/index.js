@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const profileRoutes = require("./routes/profiles");
 const serviceCategoryRoutes = require("./routes/serviceCategories");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +31,9 @@ app.use("/api/service-categories", serviceCategoryRoutes);
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+// --------------- Centralized error handler (MUST be last) ---------------
+app.use(errorHandler);
 
 // --------------- Start ---------------
 app.listen(PORT, () => {
