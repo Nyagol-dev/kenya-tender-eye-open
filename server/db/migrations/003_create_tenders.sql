@@ -1,3 +1,6 @@
+-- RENAME ONLY: this file was previously 002_create_tenders.sql
+-- Content identical to previous 002_create_tenders.sql output
+
 CREATE TABLE tenders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     reference_number TEXT UNIQUE NOT NULL,

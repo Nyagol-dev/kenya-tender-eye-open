@@ -1,3 +1,6 @@
+-- RENAME ONLY: this file was previously 003_notifications.sql
+-- Content identical to previous 003_notifications.sql output
+
 CREATE TABLE notification_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES users(id) ON DELETE CASCADE UNIQUE,
