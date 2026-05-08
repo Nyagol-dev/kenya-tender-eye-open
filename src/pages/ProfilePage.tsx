@@ -64,6 +64,28 @@ const ProfilePage = () => {
             )}
             {/* Display admin status if not already shown as a badge or for clarity */}
             {/* <p><strong>Administrator:</strong> {profile.is_admin ? 'Yes' : 'No'}</p> */}
+
+            {profile.email && profile.email !== user.email && (
+              <p><strong>Profile Email:</strong> {profile.email}</p>
+            )}
+            <p>
+              <strong>Member since:</strong>{' '}
+              {new Date(profile.created_at).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+              })}
+            </p>
+            <p>
+              <strong>Last updated:</strong>{' '}
+              {(() => {
+                const diff = Math.floor(
+                  (new Date().getTime() - new Date(profile.updated_at).getTime()) /
+                    (1000 * 60 * 60 * 24)
+                );
+                return diff < 1 ? 'Today' : diff === 1 ? 'Yesterday' : `${diff} days ago`;
+              })()}
+            </p>
+
             <Button variant="outline" onClick={signOut} className="mr-2">
               Logout
             </Button>

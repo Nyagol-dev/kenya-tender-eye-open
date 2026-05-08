@@ -16,8 +16,8 @@ const TenderList = ({ tenders }: TenderListProps) => {
   const filteredTenders = tenders.filter(tender => {
     const matchesSearch = tender.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           tender.reference.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSector = sector === "" || tender.sector === sector;
-    const matchesStatus = status === "" || tender.status === status;
+    const matchesSector = sector === "" || sector === "all" || tender.sector === sector;
+    const matchesStatus = status === "" || status === "all" || tender.status === status;
     return matchesSearch && matchesSector && matchesStatus;
   });
 
@@ -35,7 +35,7 @@ const TenderList = ({ tenders }: TenderListProps) => {
           />
         </div>
         <div className="w-full sm:w-[180px]">
-          <Select value={sector} onValueChange={setSector}>
+          <Select value={sector} onValueChange={(v) => setSector(v === "all" ? "" : v)}>
             <SelectTrigger>
               <SelectValue placeholder="All Sectors" />
             </SelectTrigger>
@@ -50,7 +50,7 @@ const TenderList = ({ tenders }: TenderListProps) => {
           </Select>
         </div>
         <div className="w-full sm:w-[180px]">
-          <Select value={status} onValueChange={setStatus}>
+          <Select value={status} onValueChange={(v) => setStatus(v === "all" ? "" : v)}>
             <SelectTrigger>
               <SelectValue placeholder="All Statuses" />
             </SelectTrigger>

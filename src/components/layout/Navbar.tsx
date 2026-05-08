@@ -1,5 +1,5 @@
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Search, UserCircle, LogOut, LogIn } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
-  const { user, signOut, loadingInitial } = useAuth(); // Get user and signOut from context
+  const { user, signOut, loadingInitial } = useAuth();
+  const { pathname } = useLocation();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-kenya-black/10 bg-white">
@@ -41,13 +42,25 @@ const Navbar = () => {
             />
           </div>
           <nav className="flex items-center space-x-2 md:space-x-4">
-            <Button variant="ghost" asChild className="hidden sm:inline-flex">
+            <Button 
+              variant={pathname.startsWith('/tenders') ? "default" : "ghost"} 
+              asChild 
+              className="hidden sm:inline-flex"
+            >
               <Link to="/tenders">Tenders</Link>
             </Button>
-            <Button variant="ghost" asChild className="hidden sm:inline-flex">
+            <Button 
+              variant={pathname.startsWith('/suppliers') ? "default" : "ghost"} 
+              asChild 
+              className="hidden sm:inline-flex"
+            >
               <Link to="/suppliers">Suppliers</Link>
             </Button>
-            <Button variant="ghost" asChild className="hidden md:inline-flex">
+            <Button 
+              variant={pathname.startsWith('/about') ? "default" : "ghost"} 
+              asChild 
+              className="hidden md:inline-flex"
+            >
               <Link to="/about">About</Link>
             </Button>
             
