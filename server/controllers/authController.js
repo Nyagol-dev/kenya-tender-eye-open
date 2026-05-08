@@ -2,6 +2,7 @@ const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../db/pool");
+const logger = require("../lib/logger");
 
 // ── Secrets & config ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -90,22 +91,55 @@ exports.signup = async (req, res) => {
     return res.status(400).json({ message: "Email and password are required" });
   }
 
+  // Acquire a dedicated client so we can run an explicit transaction.
+  const client = await pool.connect();
+
   try {
-    const existing = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+    // ── Duplicate-email check (outside the transaction — read-only, fast) ─────
+    const existing = await client.query("SELECT id FROM users WHERE email = $1", [email]);
     if (existing.rows.length > 0) {
+      client.release();
       return res.status(409).json({ message: "Email already registered" });
     }
 
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const { rows } = await pool.query(
-      `INSERT INTO users (email, password_hash, full_name, user_type, service_category_id, entity_name)
-       VALUES ($1, $2, $3, $4, $5, $6)
+    // ── Begin transaction ─────────────────────────────────────────────────────
+    await client.query("BEGIN");
+
+    // 1. Insert the user (service_category_id lives in profiles, not here)
+    const { rows } = await client.query(
+      `INSERT INTO users (email, password_hash, full_name, user_type, entity_name)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id, email`,
-      [email, hash, full_name || null, user_type || null, service_category_id || null, entity_name || null],
+      [email, hash, full_name || null, user_type || null, entity_name || null],
     );
 
     const user = rows[0];
+
+    // 2. Insert the matching profile row.
+    //    ON CONFLICT DO UPDATE handles the case where the trigger already created
+    //    a stub profile row between the users INSERT and this statement.
+    await client.query(
+      `INSERT INTO profiles (id, user_type, full_name, service_category_id, entity_name, is_admin)
+       VALUES ($1, $2, $3, $4, $5, FALSE)
+       ON CONFLICT (id) DO UPDATE
+         SET user_type           = EXCLUDED.user_type,
+             full_name           = EXCLUDED.full_name,
+             service_category_id = EXCLUDED.service_category_id,
+             entity_name         = EXCLUDED.entity_name`,
+      [
+        user.id,
+        user_type || null,
+        full_name || null,
+        user_type === "supplier" ? (service_category_id || null) : null,
+        user_type === "government_entity" ? (entity_name || null) : null,
+      ],
+    );
+
+    await client.query("COMMIT");
+
+    // ── Issue tokens after a successful commit ────────────────────────────────
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
@@ -114,8 +148,11 @@ exports.signup = async (req, res) => {
 
     return res.status(201).json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
-    console.error("signup error:", err);
+    await client.query("ROLLBACK");
+    logger.error("signup error:", err);
     return res.status(500).json({ message: "Internal server error" });
+  } finally {
+    client.release();
   }
 };
 
@@ -146,7 +183,7 @@ exports.login = async (req, res) => {
 
     return res.json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
-    console.error("login error:", err);
+    logger.error("login error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -212,7 +249,7 @@ exports.refresh = async (req, res) => {
     if (err.name === "TokenExpiredError" || err.name === "JsonWebTokenError") {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
-    console.error("refresh error:", err);
+    logger.error("refresh error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -230,7 +267,7 @@ exports.me = async (req, res) => {
 
     return res.json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
-    console.error("me error:", err);
+    logger.error("me error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -248,7 +285,7 @@ exports.logout = async (req, res) => {
       const tokenHash = hashToken(rawToken);
       await pool.query("DELETE FROM refresh_tokens WHERE token_hash = $1", [tokenHash]);
     } catch (err) {
-      console.error("logout error (non-fatal):", err);
+      logger.error("logout error (non-fatal):", err);
       // Continue — clear cookie regardless
     }
   }

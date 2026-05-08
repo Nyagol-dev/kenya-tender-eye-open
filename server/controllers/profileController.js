@@ -5,7 +5,16 @@ exports.getProfile = async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT p.*, sc.id AS service_category_id, sc.name AS service_category_name
+      `SELECT
+         p.id,
+         p.user_type,
+         p.full_name,
+         p.service_category_id,
+         p.entity_name,
+         p.is_admin,
+         p.created_at,
+         p.updated_at,
+         sc.name AS service_category_name
        FROM profiles p
        LEFT JOIN service_categories sc ON sc.id = p.service_category_id
        WHERE p.id = $1`,

@@ -10,6 +10,16 @@ const serviceCategoryRoutes = require("./routes/serviceCategories");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
+const logger = require('./lib/logger');
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.info({ method: req.method, url: req.originalUrl, status: res.statusCode, duration }, 'HTTP request');
+  });
+  next();
+});
 const PORT = process.env.PORT || 5000;
 
 // --------------- Middleware ---------------
