@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshToken = useCallback(async () => {
     try {
-      const data = await api.get<AuthResponse>('/auth/refresh');
+      const data = await api.post<AuthResponse>('/auth/refresh');
       if (data.accessToken) {
         setAccessToken(data.accessToken);
         setToken(data.accessToken);
@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initAuth = async () => {
       try {
         // useEffect on mount calls api.get('/auth/refresh') NOT '/auth/me'
-        const data = await api.get<AuthResponse>('/auth/refresh');
+        const data = await api.post<AuthResponse>('/auth/refresh');
         if (data.accessToken) {
           setAccessToken(data.accessToken);
           setToken(data.accessToken);
@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch (error) {
         // If refresh fails (401): setLoadingInitial(false), user stays null
-        console.error('Initial session restoration failed');
+        console.log('No active session found or initial session restoration failed.');
       } finally {
         setLoadingInitial(false);
       }

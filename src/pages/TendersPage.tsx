@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import TenderList from "@/components/tenders/TenderList";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getTenders } from "@/lib/api";
+import { api } from "@/lib/api";
 import { TenderInfo } from "@/components/tenders/TenderCard";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,7 +15,7 @@ const TendersPage = () => {
     const fetchTenders = async () => {
       try {
         setLoading(true);
-        const res = await getTenders();
+        const res = await api.get<{ data: TenderInfo[] }>('/tenders');
         setTenders(res.data);
       } catch (err: any) {
         toast({

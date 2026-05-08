@@ -94,7 +94,7 @@ exports.list = async (req, res) => {
       totalPages
     });
   } catch (err) {
-    logger.error("list tenders error:", err);
+    logger.error({ err }, "list tenders error");
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -134,7 +134,7 @@ exports.getById = async (req, res) => {
 
     res.json(row);
   } catch (err) {
-    logger.error("get tender by id error:", err);
+    logger.error("get tender by id error: " + err.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };

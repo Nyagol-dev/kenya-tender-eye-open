@@ -2,9 +2,18 @@ const pino = require('pino');
 
 const isProd = process.env.NODE_ENV === 'production';
 
+const fs = require('fs');
+const path = require('path');
+
+const logDir = path.join(__dirname, '../logs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
 // Define file streams for errors and combined logs
-const errorStream = pino.destination('logs/error.log'); // errors only
-const combinedStream = pino.destination('logs/combined.log'); // all logs
+const errorStream = pino.destination(path.join(logDir, 'error.log')); // errors only
+const combinedStream = pino.destination(path.join(logDir, 'combined.log')); // all logs
+
 
 // Create multistream configuration
 const streams = [
