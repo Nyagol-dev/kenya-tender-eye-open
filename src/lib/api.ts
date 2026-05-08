@@ -10,6 +10,23 @@ export function getAccessToken(): string | null {
   return accessToken;
 }
 
+/**
+ * Decode a JWT's payload WITHOUT verifying its signature.
+ * Returns the `exp` claim (epoch seconds) or null if the token is malformed.
+ * Used client-side only to schedule the silent-refresh timer.
+ */
+export function getTokenExpiry(token: string): number | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    // Base64url → Base64 → decode
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
+
 async function request<T>(
   path: string,
   options: RequestInit = {},

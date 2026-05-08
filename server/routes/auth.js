@@ -6,6 +6,7 @@ const router = Router();
 
 router.post("/signup", auth.signup);
 router.post("/login", auth.login);
+router.post("/refresh", auth.refresh);
 router.post("/logout", auth.logout);
 router.get("/me", authenticate, auth.me);
 

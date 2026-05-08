@@ -1,16 +1,87 @@
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const pool = require("../db/pool");
 
+// ── Secrets & config ────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+const ACCESS_TOKEN_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "15m";
+const REFRESH_TOKEN_EXPIRES_IN = "7d";
+const REFRESH_TOKEN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
 const SALT_ROUNDS = 10;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
 
-function signToken(user) {
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Sign a short-lived access token (15 min by default).
+ * Returned in the JSON response body — held in memory by the client.
+ */
+function signAccessToken(user) {
   return jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
+    expiresIn: ACCESS_TOKEN_EXPIRES_IN,
   });
 }
+
+/**
+ * Sign a long-lived refresh token (7 days).
+ * Delivered as an HttpOnly cookie — never exposed to JS.
+ */
+function signRefreshToken(user) {
+  return jwt.sign({ id: user.id }, REFRESH_TOKEN_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+  });
+}
+
+/**
+ * SHA-256 hash a raw refresh token before storing in the DB.
+ * If the DB is compromised, the attacker cannot replay the tokens.
+ */
+function hashToken(token) {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+/**
+ * Persist a refresh token hash in the database.
+ */
+async function storeRefreshToken(userId, rawToken) {
+  const tokenHash = hashToken(rawToken);
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_MAX_AGE_MS);
+
+  await pool.query(
+    `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+     VALUES ($1, $2, $3)`,
+    [userId, tokenHash, expiresAt],
+  );
+}
+
+/**
+ * Set the refresh token as an HttpOnly cookie.
+ */
+function setRefreshCookie(res, token) {
+  res.cookie("refreshToken", token, {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: "strict",
+    maxAge: REFRESH_TOKEN_MAX_AGE_MS,
+    path: "/",
+  });
+}
+
+/**
+ * Clear the refresh token cookie.
+ */
+function clearRefreshCookie(res) {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: "strict",
+    path: "/",
+  });
+}
+
+// ── Route handlers ──────────────────────────────────────────────────────────
 
 exports.signup = async (req, res) => {
   const { email, password, full_name, user_type, service_category_id, entity_name } = req.body;
@@ -35,9 +106,13 @@ exports.signup = async (req, res) => {
     );
 
     const user = rows[0];
-    const token = signToken(user);
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
 
-    return res.status(201).json({ token, user: { id: user.id, email: user.email } });
+    await storeRefreshToken(user.id, refreshToken);
+    setRefreshCookie(res, refreshToken);
+
+    return res.status(201).json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error("signup error:", err);
     return res.status(500).json({ message: "Internal server error" });
@@ -63,11 +138,81 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = signToken(user);
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
 
-    return res.json({ token, user: { id: user.id, email: user.email } });
+    await storeRefreshToken(user.id, refreshToken);
+    setRefreshCookie(res, refreshToken);
+
+    return res.json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error("login error:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+/**
+ * POST /auth/refresh
+ *
+ * Reads the refresh token from the HttpOnly cookie, verifies it,
+ * checks the hash against the DB, then rotates: deletes the old
+ * token and issues a brand-new pair.
+ */
+exports.refresh = async (req, res) => {
+  const rawToken = req.cookies?.refreshToken;
+  if (!rawToken) {
+    return res.status(401).json({ message: "No refresh token" });
+  }
+
+  try {
+    // 1. Verify the JWT signature & expiry
+    const payload = jwt.verify(rawToken, REFRESH_TOKEN_SECRET);
+
+    // 2. Check the hash exists in the DB (not yet revoked)
+    const tokenHash = hashToken(rawToken);
+    const { rows } = await pool.query(
+      `SELECT id, user_id FROM refresh_tokens
+       WHERE token_hash = $1 AND expires_at > NOW()`,
+      [tokenHash],
+    );
+
+    if (rows.length === 0) {
+      clearRefreshCookie(res);
+      return res.status(401).json({ message: "Refresh token revoked or expired" });
+    }
+
+    const storedToken = rows[0];
+
+    // 3. Fetch the user
+    const userResult = await pool.query(
+      "SELECT id, email FROM users WHERE id = $1",
+      [payload.id],
+    );
+
+    if (userResult.rows.length === 0) {
+      clearRefreshCookie(res);
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+
+    // 4. Rotate: delete old token, issue new pair
+    await pool.query("DELETE FROM refresh_tokens WHERE id = $1", [storedToken.id]);
+
+    const newAccessToken = signAccessToken(user);
+    const newRefreshToken = signRefreshToken(user);
+
+    await storeRefreshToken(user.id, newRefreshToken);
+    setRefreshCookie(res, newRefreshToken);
+
+    return res.json({ accessToken: newAccessToken, user: { id: user.id, email: user.email } });
+  } catch (err) {
+    // JWT verification failed (expired, tampered, etc.)
+    clearRefreshCookie(res);
+    if (err.name === "TokenExpiredError" || err.name === "JsonWebTokenError") {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+    console.error("refresh error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -81,17 +226,33 @@ exports.me = async (req, res) => {
     }
 
     const user = rows[0];
-    const token = signToken(user);
+    const accessToken = signAccessToken(user);
 
-    return res.json({ token, user: { id: user.id, email: user.email } });
+    return res.json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
     console.error("me error:", err);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-exports.logout = (_req, res) => {
-  // With in-memory JWT the client simply discards the token.
-  // This endpoint exists so the frontend has a consistent API to call.
+/**
+ * POST /auth/logout
+ *
+ * Deletes the refresh token from the DB and clears the cookie.
+ */
+exports.logout = async (req, res) => {
+  const rawToken = req.cookies?.refreshToken;
+
+  if (rawToken) {
+    try {
+      const tokenHash = hashToken(rawToken);
+      await pool.query("DELETE FROM refresh_tokens WHERE token_hash = $1", [tokenHash]);
+    } catch (err) {
+      console.error("logout error (non-fatal):", err);
+      // Continue — clear cookie regardless
+    }
+  }
+
+  clearRefreshCookie(res);
   return res.status(204).end();
 };

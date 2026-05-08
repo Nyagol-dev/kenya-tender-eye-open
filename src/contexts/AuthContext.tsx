@@ -1,13 +1,13 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, ReactNode } from 'react';
 import { AuthContextType, Profile, SignUpParams, SignInParams, User } from '@/types/auth';
-import { api, setAccessToken, getAccessToken } from '@/lib/api';
+import { api, setAccessToken, getTokenExpiry } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/components/ui/use-toast";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthResponse {
-  token: string;
+  accessToken: string;
   user: User;
 }
 
@@ -19,6 +19,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Ref for the silent-refresh timer so we can clear it on unmount / token change
+  const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     setLoadingProfile(true);
@@ -37,25 +40,74 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [toast]);
 
-  // On mount, try to restore the session from a refresh-token cookie or
-  // a previously stored JWT (e.g. kept in memory across hot-reloads).
+  /**
+   * Call POST /auth/refresh. The HttpOnly cookie is sent automatically.
+   * Returns the new access token and user, or null if the refresh failed.
+   */
+  const performRefresh = useCallback(async (): Promise<AuthResponse | null> => {
+    try {
+      const data = await api.post<AuthResponse>('/auth/refresh');
+      return data;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /**
+   * Store the access token in memory and schedule the next silent refresh.
+   */
+  const applyToken = useCallback((accessToken: string) => {
+    setAccessToken(accessToken);
+    setToken(accessToken);
+
+    // Clear any existing timer
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+
+    // Schedule silent refresh ~1 minute before the token expires
+    const exp = getTokenExpiry(accessToken);
+    if (exp) {
+      const nowSec = Math.floor(Date.now() / 1000);
+      const delayMs = Math.max((exp - nowSec - 60) * 1000, 0);
+
+      refreshTimerRef.current = setTimeout(async () => {
+        const result = await performRefresh();
+        if (result?.accessToken) {
+          applyToken(result.accessToken);
+          if (result.user) setUser(result.user);
+        } else {
+          // Refresh failed — session expired
+          setAccessToken(null);
+          setToken(null);
+          setUser(null);
+          setProfile(null);
+        }
+      }, delayMs);
+    }
+  }, [performRefresh]);
+
+  // On mount, try to restore the session via the refresh-token cookie.
+  // POST /auth/refresh sends the HttpOnly cookie automatically; if valid
+  // the server returns a new accessToken + user.
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        // If the backend issues HttpOnly refresh-token cookies, calling
-        // /auth/me with credentials: "include" will return the current
-        // user without the client ever touching the token.
-        const data = await api.get<AuthResponse>('/auth/me');
-        if (data?.token) {
-          setAccessToken(data.token);
-          setToken(data.token);
-        }
-        if (data?.user) {
-          setUser(data.user);
-          fetchProfile(data.user.id);
+        const data = await performRefresh();
+        if (data?.accessToken) {
+          applyToken(data.accessToken);
+          if (data.user) {
+            setUser(data.user);
+            fetchProfile(data.user.id);
+          }
+        } else {
+          // No valid session — user needs to log in.
+          setUser(null);
+          setToken(null);
+          setProfile(null);
         }
       } catch {
-        // No valid session — user needs to log in.
         setUser(null);
         setToken(null);
         setProfile(null);
@@ -65,7 +117,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     restoreSession();
-  }, [fetchProfile]);
+
+    // Cleanup: clear the silent-refresh timer when the provider unmounts
+    return () => {
+      if (refreshTimerRef.current) {
+        clearTimeout(refreshTimerRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const signUp = async ({ email, password_1, options }: SignUpParams) => {
     try {
@@ -75,9 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         ...options?.data,
       });
 
-      if (data.token) {
-        setAccessToken(data.token);
-        setToken(data.token);
+      if (data.accessToken) {
+        applyToken(data.accessToken);
       }
       if (data.user) {
         setUser(data.user);
@@ -101,9 +160,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password: password_1,
       });
 
-      if (data.token) {
-        setAccessToken(data.token);
-        setToken(data.token);
+      if (data.accessToken) {
+        applyToken(data.accessToken);
       }
       if (data.user) {
         setUser(data.user);
@@ -121,6 +179,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    // Clear the silent-refresh timer immediately
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+    }
+
     try {
       await api.post('/auth/logout');
     } catch {
