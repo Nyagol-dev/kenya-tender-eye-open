@@ -13,6 +13,7 @@ export interface Profile {
   registration_number?: string | null;
   location?: string | null;
   supplier_status?: 'active' | 'suspended' | 'blacklisted' | null;
+  status?: 'pending' | 'approved' | 'rejected'; // Added status field
   entity_name?: string | null;
   is_admin: boolean; // Added is_admin field
   created_at: string; // TIMESTAMPTZ

@@ -12,6 +12,7 @@ exports.getProfile = async (req, res) => {
          p.service_category_id,
          p.entity_name,
          p.is_admin,
+         p.status,
          p.created_at,
          p.updated_at,
          sc.name AS service_category_name

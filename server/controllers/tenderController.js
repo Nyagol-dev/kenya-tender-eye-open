@@ -138,3 +138,26 @@ exports.getById = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.submitBid = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const profileRes = await pool.query('SELECT user_type, status FROM profiles WHERE id = $1', [req.user.id]);
+    if (profileRes.rows.length === 0) {
+      return res.status(404).json({ message: "Profile not found" });
+    }
+
+    const profile = profileRes.rows[0];
+    
+    if (profile.user_type === 'supplier' && profile.status !== 'approved') {
+      return res.status(403).json({ message: "Only approved suppliers can submit bids." });
+    }
+
+    // Stub logic for bidding 
+    res.status(200).json({ message: "Bid submitted successfully." });
+  } catch (err) {
+    logger.error("submit bid error: " + err.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

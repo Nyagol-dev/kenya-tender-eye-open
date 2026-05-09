@@ -3,15 +3,29 @@ import Navbar from './Navbar';
 import { ReactNode } from 'react';
 import AccessibilityToggle from '../accessibility/AccessibilityToggle';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface MainLayoutProps {
   children: ReactNode;
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
+  const { profile } = useAuth();
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
+      {profile?.user_type === 'supplier' && profile?.status === 'pending' && (
+        <div className="container mt-4">
+          <Alert variant="destructive">
+            <AlertTitle>Waiting for Approval</AlertTitle>
+            <AlertDescription>
+              Your account is currently pending approval. You will not be able to submit bids until an administrator approves your account.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
       <main className="flex-1">
         {children}
       </main>

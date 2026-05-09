@@ -45,6 +45,7 @@ app.use('/api/profiles', profileRoutes);
 app.use('/api/service-categories', serviceCategoryRoutes);
 app.use('/api/tenders', tenderRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', require('./routes/admin'));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 

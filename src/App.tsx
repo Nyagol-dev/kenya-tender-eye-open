@@ -35,6 +35,7 @@ const App = () => (
             <Route path="/about" element={<AboutPage />} />
             <Route path="/documentation" element={<DocumentationPage />} />
             <Route path="*" element={<NotFound />} />
+            <Route path="/admin/approvals" element={profile?.is_admin ? <AdminApprovalsPage /> : <Navigate to="/" />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
