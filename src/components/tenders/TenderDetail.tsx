@@ -104,20 +104,12 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
                 <p>{tender.sector}</p>
               </div>
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Publication Date</h3>
-                <p>April 10, 2023</p>
-              </div>
-              <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Closing Date</h3>
                 <p>{tender.closingDate}</p>
               </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground mb-1">Estimated Value</h3>
                 <p>{formattedValue}</p>
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Location</h3>
-                <p>Nairobi County</p>
               </div>
             </CardContent>
           </Card>
@@ -127,16 +119,11 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
               <CardTitle>Description</CardTitle>
             </CardHeader>
             <CardContent>
-              <p>
-                This tender involves the procurement of construction services for the expansion of 
-                key infrastructure in line with the Kenya Vision 2030 goals. The project aims to 
-                enhance transportation networks and improve accessibility within major urban centers.
-              </p>
-              <p className="mt-4">
-                The scope includes construction of new roads, rehabilitation of existing infrastructure, 
-                and installation of modern traffic management systems to reduce congestion and improve 
-                safety standards across the targeted regions.
-              </p>
+              {tender.description ? (
+                <p className="whitespace-pre-line">{tender.description}</p>
+              ) : (
+                <p className="text-muted-foreground italic">No detailed description provided for this tender.</p>
+              )}
             </CardContent>
           </Card>
 

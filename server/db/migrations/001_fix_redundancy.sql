@@ -8,12 +8,19 @@ BEGIN;
 ALTER TABLE users DROP COLUMN IF EXISTS service_category_id;
 
 -- 2. Ensure profiles table exists
+DO $$ BEGIN
+    CREATE TYPE approval_status AS ENUM ('pending', 'approved', 'rejected');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
 CREATE TABLE IF NOT EXISTS profiles (
   id                  UUID        PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   user_type           TEXT,
   full_name           TEXT,
   service_category_id UUID        REFERENCES service_categories(id) ON DELETE SET NULL,
   entity_name         TEXT,
+  status              approval_status NOT NULL DEFAULT 'pending',
   is_admin            BOOLEAN     NOT NULL DEFAULT FALSE,
   created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -8,6 +8,7 @@ export interface TenderInfo {
   id: string;
   title: string;
   reference: string;
+  description?: string;
   issuingAuthority: string;
   closingDate: string;
   value: number;

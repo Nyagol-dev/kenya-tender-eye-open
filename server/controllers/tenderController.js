@@ -1,5 +1,6 @@
 const pool = require("../db/pool");
 const logger = require("../lib/logger");
+const { notifyNewTender } = require("../lib/notifier");
 
 exports.list = async (req, res) => {
   try {
@@ -158,6 +159,36 @@ exports.submitBid = async (req, res) => {
     res.status(200).json({ message: "Bid submitted successfully." });
   } catch (err) {
     logger.error("submit bid error: " + err.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+exports.create = async (req, res) => {
+  try {
+    const { title, reference_number, description, sector, value, closing_date } = req.body;
+    
+    if (!title || !reference_number || !closing_date) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const insertQuery = `
+      INSERT INTO tenders (title, reference_number, description, sector, value, closing_date, issuing_entity_id, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'open')
+      RETURNING *
+    `;
+    const values = [title, reference_number, description, sector, value, closing_date, req.user.id];
+    
+    const { rows } = await pool.query(insertQuery, values);
+    const newTender = rows[0];
+
+    // Bulk notifications
+    await notifyNewTender(newTender).catch(err => {
+      logger.error("Failed to notify new tender: " + err.message);
+    });
+
+    res.status(201).json(newTender);
+  } catch (err) {
+    logger.error("create tender error: " + err.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };
