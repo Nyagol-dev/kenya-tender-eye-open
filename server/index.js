@@ -37,8 +37,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/api/auth/login', rateLimit);
-app.use('/api/auth/signup', rateLimit);
+app.use('/api/auth/login', rateLimit({ max: 5 }));
+app.use('/api/auth/signup', rateLimit({ max: 5 }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);

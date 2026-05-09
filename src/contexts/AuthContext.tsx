@@ -21,6 +21,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  /** Decode JWT exp and schedule a silent refresh 60 s before expiry.
+   *  Falls back to a safe 14-minute interval on decode failure. */
+  const scheduleTokenRefresh = useCallback((accessToken: string) => {
+    const FALLBACK_MS = 14 * 60 * 1000; // 14 minutes
+    let delayMs = FALLBACK_MS;
+
+    try {
+      const payload = JSON.parse(atob(accessToken.split('.')[1]));
+      const msUntilExpiry = payload.exp * 1000 - Date.now() - 60_000;
+      if (msUntilExpiry > 0) delayMs = msUntilExpiry;
+    } catch {
+      console.warn('Failed to decode JWT exp — using fallback refresh interval');
+    }
+
+    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    refreshTimeoutRef.current = setTimeout(() => refreshToken(), delayMs);
+  }, []);
+
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     setLoadingProfile(true);
     try {
@@ -46,10 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setToken(data.accessToken);
         if (data.user) setUser(data.user);
 
-        // Silent token refresh: decode the JWT exp claim
-        const exp = JSON.parse(atob(data.accessToken.split('.')[1])).exp;
-        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-        refreshTimeoutRef.current = setTimeout(() => refreshToken(), (exp * 1000) - Date.now() - 60000);
+        scheduleTokenRefresh(data.accessToken);
       }
     } catch (error) {
       console.error('Silent refresh failed:', error);
@@ -72,10 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             fetchProfile(data.user.id);
           }
 
-          // Silent token refresh logic
-          const exp = JSON.parse(atob(data.accessToken.split('.')[1])).exp;
-          if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-          refreshTimeoutRef.current = setTimeout(() => refreshToken(), (exp * 1000) - Date.now() - 60000);
+          scheduleTokenRefresh(data.accessToken);
         }
       } catch (error) {
         // If refresh fails (401): setLoadingInitial(false), user stays null
@@ -106,10 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAccessToken(data.accessToken);
         setToken(data.accessToken);
 
-        // Silent token refresh logic
-        const exp = JSON.parse(atob(data.accessToken.split('.')[1])).exp;
-        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-        refreshTimeoutRef.current = setTimeout(() => refreshToken(), (exp * 1000) - Date.now() - 60000);
+        scheduleTokenRefresh(data.accessToken);
       }
 
       if (data.user) {
@@ -138,10 +147,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setAccessToken(data.accessToken);
         setToken(data.accessToken);
 
-        // Silent token refresh logic
-        const exp = JSON.parse(atob(data.accessToken.split('.')[1])).exp;
-        if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
-        refreshTimeoutRef.current = setTimeout(() => refreshToken(), (exp * 1000) - Date.now() - 60000);
+        scheduleTokenRefresh(data.accessToken);
       }
 
       if (data.user) {
