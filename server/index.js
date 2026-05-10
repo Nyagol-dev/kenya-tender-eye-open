@@ -12,6 +12,7 @@ const profileRoutes = require('./routes/profiles');
 const serviceCategoryRoutes = require('./routes/serviceCategories');
 const tenderRoutes = require('./routes/tenders');
 const notificationRoutes = require('./routes/notifications');
+const adminAuthRoutes = require('./routes/adminAuth');
 
 const authenticate = require('./middleware/authenticate');
 const errorHandler = require('./middleware/errorHandler');
@@ -46,6 +47,7 @@ app.use('/api/service-categories', serviceCategoryRoutes);
 app.use('/api/tenders', tenderRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin/auth', adminAuthRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
