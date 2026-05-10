@@ -6,6 +6,10 @@ const cors = require('cors');
 const path = require('path');
 const logger = require('./lib/logger');
 const pool = require('./db/pool');
+const { scheduleCleanup } = require('./lib/onboardingScheduler');
+
+scheduleCleanup();
+
 
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profiles');
@@ -13,6 +17,7 @@ const serviceCategoryRoutes = require('./routes/serviceCategories');
 const tenderRoutes = require('./routes/tenders');
 const notificationRoutes = require('./routes/notifications');
 const adminAuthRoutes = require('./routes/adminAuth');
+const onboardingRoutes = require('./routes/onboarding');
 
 const authenticate = require('./middleware/authenticate');
 const errorHandler = require('./middleware/errorHandler');
@@ -48,6 +53,7 @@ app.use('/api/tenders', tenderRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 

@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../db/pool');
 const logger = require('../lib/logger');
+const { initOnboarding } = require('./onboardingController');
 
 const SALT_ROUNDS = 10;
 const ACCESS_SECRET = process.env.JWT_SECRET;
@@ -57,6 +58,10 @@ exports.signup = async (req, res) => {
          VALUES ($1, $2, $3, $4, $5, false)`,
         [user.id, user_type, full_name, service_category_id, entity_name]
       );
+
+      if (user_type === 'supplier') {
+        await initOnboarding(client, user.id);
+      }
 
       const accessToken = signAccessToken(user);
       const refreshToken = signRefreshToken(user);
