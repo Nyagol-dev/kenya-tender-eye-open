@@ -76,7 +76,7 @@ exports.signup = async (req, res) => {
       await client.query('COMMIT');
 
       setRefreshCookie(res, refreshToken);
-      return res.status(201).json({ token: accessToken, user: { id: user.id, email: user.email } });
+      return res.status(201).json({ accessToken, user: { id: user.id, email: user.email } });
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;
@@ -123,7 +123,7 @@ exports.login = async (req, res) => {
     );
 
     setRefreshCookie(res, refreshToken);
-    return res.json({ token: accessToken, user: { id: user.id, email: user.email } });
+    return res.json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
     logger.error('login error:', err);
     return res.status(500).json({ error: 'Internal server error' });
@@ -161,7 +161,7 @@ exports.refresh = async (req, res) => {
     const user = userResult.rows[0];
     const accessToken = signAccessToken(user);
 
-    return res.json({ token: accessToken, user: { id: user.id, email: user.email } });
+    return res.json({ accessToken, user: { id: user.id, email: user.email } });
   } catch (err) {
     logger.error('refresh error:', err);
     return res.status(500).json({ error: 'Internal server error' });

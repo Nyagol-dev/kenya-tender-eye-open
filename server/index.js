@@ -85,8 +85,8 @@ app.use('/api/profiles', profileRoutes);
 app.use('/api/service-categories', serviceCategoryRoutes);
 app.use('/api/tenders', tenderRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/admin', adminPortalRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
+app.use('/api/admin', adminPortalRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/bids', bidRoutes);
 

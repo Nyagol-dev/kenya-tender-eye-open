@@ -30,9 +30,9 @@ async function request<T>(
 
   // Handle paths that might or might not start with a slash
   const cleanPath = path.startsWith('/') ? path : `/${path}`;
-  const fullPath = cleanPath.startsWith('/api/admin') 
+  const fullPath = cleanPath.startsWith('/admin') 
     ? cleanPath 
-    : `/api/admin${cleanPath}`;
+    : `/admin${cleanPath}`;
 
   const res = await fetch(`${API_URL}${fullPath}`, {
     ...options,

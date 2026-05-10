@@ -79,7 +79,7 @@ export function AdminDashboardPage() {
             label="Suppliers" 
             isActive={activeTab === 'suppliers'} 
             onClick={() => setActiveTab('suppliers')} 
-            badgeCount={dashboardData?.pendingSuppliersCount || 0}
+            badgeCount={dashboardData?.suppliers?.pending_onboarding || 0}
             badgeColor="bg-yellow-500 text-yellow-950"
           />
           <NavItem 
@@ -87,7 +87,7 @@ export function AdminDashboardPage() {
             label="Bids" 
             isActive={activeTab === 'bids'} 
             onClick={() => setActiveTab('bids')} 
-            badgeCount={dashboardData?.underReviewBidsCount || 0}
+            badgeCount={dashboardData?.bids?.submitted || 0}
             badgeColor="bg-blue-500 text-blue-50"
           />
           <NavItem 
@@ -201,10 +201,10 @@ function OverviewTab({ dashboardData, alertsData, onSwitchToSuppliers, onReviewS
 
       {/* TOP ROW STATS */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <StatCard title="Total Suppliers" value={dashboardData?.totalSuppliers || 0} subtitle="Approved" />
-        <StatCard title="Pending Onboarding" value={dashboardData?.pendingSuppliersCount || 0} subtitle="Requires review" valueColor="text-yellow-600" />
-        <StatCard title="Active Tenders" value={dashboardData?.activeTenders || 0} subtitle="Open for bids" valueColor="text-green-600" />
-        <StatCard title="Pending Bids" value={dashboardData?.pendingBidsCount || 0} subtitle="Submitted" valueColor="text-blue-600" />
+        <StatCard title="Total Suppliers" value={dashboardData?.suppliers?.total || 0} subtitle="Approved" />
+        <StatCard title="Pending Onboarding" value={dashboardData?.suppliers?.pending_onboarding || 0} subtitle="Requires review" valueColor="text-yellow-600" />
+        <StatCard title="Active Tenders" value={dashboardData?.tenders?.open || 0} subtitle="Open for bids" valueColor="text-green-600" />
+        <StatCard title="Pending Bids" value={dashboardData?.bids?.submitted || 0} subtitle="Submitted" valueColor="text-blue-600" />
         <StatCard 
           title="System Alerts" 
           value={alertsData?.length || 0} 
@@ -226,19 +226,19 @@ function OverviewTab({ dashboardData, alertsData, onSwitchToSuppliers, onReviewS
           </CardHeader>
           <CardContent>
             <div className="space-y-4 mt-2">
-              {pendingSuppliers?.suppliers?.map((supplier: any) => (
-                <div key={supplier.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+              {pendingSuppliers?.data?.map((supplier: any) => (
+                <div key={supplier.user_id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
                   <div>
-                    <p className="font-medium text-slate-900">{supplier.entity_name || 'Unnamed Supplier'}</p>
+                    <p className="font-medium text-slate-900">{supplier.business_name || 'Unnamed Supplier'}</p>
                     <p className="text-sm text-slate-500">{supplier.email}</p>
                     <p className="text-xs text-slate-400 mt-1">
-                      Submitted {supplier.updated_at ? formatDistanceToNow(new Date(supplier.updated_at), { addSuffix: true }) : 'recently'}
+                      Submitted {supplier.submitted_at ? formatDistanceToNow(new Date(supplier.submitted_at), { addSuffix: true }) : 'recently'}
                     </p>
                   </div>
-                  <Button size="sm" onClick={() => onReviewSupplier(supplier.id)}>Review</Button>
+                  <Button size="sm" onClick={() => onReviewSupplier(supplier.user_id)}>Review</Button>
                 </div>
               ))}
-              {(!pendingSuppliers?.suppliers || pendingSuppliers.suppliers.length === 0) && (
+              {(!pendingSuppliers?.data || pendingSuppliers.data.length === 0) && (
                 <div className="text-center py-8 text-slate-500">
                   <CheckCircleIcon className="h-10 w-10 mx-auto text-green-200 mb-2" />
                   <p>All caught up! No pending suppliers.</p>
@@ -385,16 +385,16 @@ function SuppliersTab({ onViewDetails }: { onViewDetails: (id: string) => void }
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-slate-500">Loading suppliers...</td>
                 </tr>
-              ) : data?.suppliers?.length > 0 ? (
-                data.suppliers.map((supplier: any) => (
-                  <tr key={supplier.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900">{supplier.entity_name || 'N/A'}</td>
+              ) : data?.data?.length > 0 ? (
+                data.data.map((supplier: any) => (
+                  <tr key={supplier.user_id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-slate-900">{supplier.business_name || 'N/A'}</td>
                     <td className="px-6 py-4 text-slate-600">{supplier.email}</td>
-                    <td className="px-6 py-4 text-slate-600">{supplier.service_category?.name || 'N/A'}</td>
-                    <td className="px-6 py-4">{renderStatusBadge(supplier.status)}</td>
-                    <td className="px-6 py-4 text-slate-600">{supplier.current_step || 1}/4</td>
+                    <td className="px-6 py-4 text-slate-600">{supplier.primary_service_category_name || 'N/A'}</td>
+                    <td className="px-6 py-4">{renderStatusBadge(supplier.onboarding_status)}</td>
+                    <td className="px-6 py-4 text-slate-600">{supplier.step_completed || 0}/4</td>
                     <td className="px-6 py-4 text-right">
-                      <Button variant="ghost" size="sm" onClick={() => onViewDetails(supplier.id)}>
+                      <Button variant="ghost" size="sm" onClick={() => onViewDetails(supplier.user_id)}>
                         View Details
                       </Button>
                     </td>
@@ -413,7 +413,7 @@ function SuppliersTab({ onViewDetails }: { onViewDetails: (id: string) => void }
         
         {/* Pagination could go here */}
         <div className="border-t border-slate-200 p-4 flex items-center justify-between bg-slate-50 text-sm text-slate-600 mt-auto">
-          <span>Showing {data?.suppliers?.length || 0} suppliers</span>
+          <span>Showing {data?.data?.length || 0} of {data?.total || 0} suppliers</span>
         </div>
       </div>
     </div>
@@ -498,15 +498,15 @@ function BidsTab({ onViewDetails }: { onViewDetails: (id: string) => void }) {
                 <tr>
                   <td colSpan={7} className="px-6 py-8 text-center text-slate-500">Loading bids...</td>
                 </tr>
-              ) : data?.bids?.length > 0 ? (
-                data.bids.map((bid: any) => (
+              ) : data?.data?.length > 0 ? (
+                data.data.map((bid: any) => (
                   <tr key={bid.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900">{bid.tender?.reference_number || 'N/A'}</td>
-                    <td className="px-6 py-4 text-slate-600">{bid.supplier?.entity_name || 'N/A'}</td>
-                    <td className="px-6 py-4 font-medium">{Number(bid.amount).toLocaleString()}</td>
-                    <td className="px-6 py-4 text-slate-600">{bid.timeline_days} days</td>
+                    <td className="px-6 py-4 font-medium text-slate-900">{bid.tender_reference || 'N/A'}</td>
+                    <td className="px-6 py-4 text-slate-600">{bid.supplier_name || bid.supplier_email || 'N/A'}</td>
+                    <td className="px-6 py-4 font-medium">{Number(bid.bid_amount).toLocaleString()}</td>
+                    <td className="px-6 py-4 text-slate-600">{bid.completion_timeline_days} days</td>
                     <td className="px-6 py-4">{renderStatusBadge(bid.status)}</td>
-                    <td className="px-6 py-4 text-slate-600">{new Date(bid.created_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 text-slate-600">{new Date(bid.submitted_at).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right">
                       <Button variant="ghost" size="sm" onClick={() => onViewDetails(bid.id)}>
                         Review
@@ -526,7 +526,7 @@ function BidsTab({ onViewDetails }: { onViewDetails: (id: string) => void }) {
         </div>
         
         <div className="border-t border-slate-200 p-4 flex items-center justify-between bg-slate-50 text-sm text-slate-600 mt-auto">
-          <span>Showing {data?.bids?.length || 0} bids</span>
+          <span>Showing {data?.data?.length || 0} of {data?.total || 0} bids</span>
         </div>
       </div>
     </div>

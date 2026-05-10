@@ -43,22 +43,24 @@ export function AdminSupplierDetailDrawer({
   });
 
   const reviewMutation = useMutation({
-    mutationFn: (data: { decision: 'approve' | 'reject'; rejection_reason?: string }) =>
+    mutationFn: (data: { decision: 'approved' | 'rejected'; rejection_reason?: string }) =>
       adminApi.post(`/suppliers/${userId}/review`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin_suppliers'] });
       queryClient.invalidateQueries({ queryKey: ['admin_supplier', userId] });
+      queryClient.invalidateQueries({ queryKey: ['admin_suppliers_pending'] });
+      queryClient.invalidateQueries({ queryKey: ['admin_dashboard'] });
       setRejectDialogOpen(false);
       onOpenChange(false);
     },
   });
 
   const handleApprove = () => {
-    reviewMutation.mutate({ decision: 'approve' });
+    reviewMutation.mutate({ decision: 'approved' });
   };
 
   const handleReject = () => {
-    reviewMutation.mutate({ decision: 'reject', rejection_reason: rejectionReason });
+    reviewMutation.mutate({ decision: 'rejected', rejection_reason: rejectionReason });
   };
 
   if (!open) return null;
@@ -74,13 +76,29 @@ export function AdminSupplierDetailDrawer({
     }
   };
 
+  // The API returns { user, onboarding, documents, bids, previous_projects }
+  // Flatten into a convenient accessor
+  const supplierData = supplier ? {
+    email: supplier.user?.email,
+    entity_name: supplier.user?.entity_name || supplier.onboarding?.business_name,
+    registration_number: supplier.onboarding?.registration_number,
+    location: supplier.onboarding?.counties_of_operation?.join(', '),
+    kra_pin: supplier.onboarding?.kra_pin,
+    current_step: supplier.onboarding?.step_completed,
+    status: supplier.onboarding?.status,
+    documents: supplier.documents || [],
+    bids: supplier.bids || [],
+    previous_projects: supplier.previous_projects || [],
+    rejection_reason: supplier.onboarding?.rejection_reason,
+  } : null;
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-[700px] w-[90vw] overflow-y-auto pb-24">
         <SheetHeader className="mb-6">
           <SheetTitle className="text-2xl flex items-center gap-3">
             Supplier Details
-            {supplier && renderStatusBadge(supplier.status)}
+            {supplierData && renderStatusBadge(supplierData.status)}
           </SheetTitle>
           <SheetDescription>
             Review supplier information, documents, and bidding history.
@@ -91,7 +109,7 @@ export function AdminSupplierDetailDrawer({
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
-        ) : supplier ? (
+        ) : supplierData ? (
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -104,27 +122,27 @@ export function AdminSupplierDetailDrawer({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-500">Company Name</p>
-                  <p className="font-medium">{supplier.entity_name || 'N/A'}</p>
+                  <p className="font-medium">{supplierData.entity_name || 'N/A'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-500">Email</p>
-                  <p className="font-medium">{supplier.email || 'N/A'}</p>
+                  <p className="font-medium">{supplierData.email || 'N/A'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-500">Registration Number</p>
-                  <p className="font-medium">{supplier.registration_number || 'N/A'}</p>
+                  <p className="font-medium">{supplierData.registration_number || 'N/A'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-500">Location</p>
-                  <p className="font-medium">{supplier.location || 'N/A'}</p>
+                  <p className="font-medium">{supplierData.location || 'N/A'}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Service Category</p>
-                  <p className="font-medium">{supplier.service_category?.name || 'N/A'}</p>
+                  <p className="text-sm font-medium text-gray-500">KRA PIN</p>
+                  <p className="font-medium">{supplierData.kra_pin || 'N/A'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-gray-500">Onboarding Step</p>
-                  <p className="font-medium">{supplier.current_step || 1} / 4</p>
+                  <p className="font-medium">{supplierData.current_step || 0} / 4</p>
                 </div>
               </div>
             </TabsContent>
