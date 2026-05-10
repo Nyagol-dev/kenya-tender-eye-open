@@ -11,6 +11,7 @@ export interface AuthContextType {
   profile: Profile | null;
   loadingInitial: boolean;
   loadingProfile: boolean;
+  onboardingStatus: string | null;
   signUp: (params: SignUpParams) => Promise<void>;
   signInWithPassword: (params: SignInParams) => Promise<void>;
   signOut: () => Promise<void>;

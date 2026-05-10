@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [onboardingStatus, setOnboardingStatus] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const refreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -44,12 +45,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const data = await api.get<Profile>(`/profiles/${userId}`);
       setProfile(data);
+      
+      // Fetch onboarding status if user is a supplier
+      if (data.user_type === 'supplier') {
+        try {
+          const onboardingData = await api.get<{ status: string }>('/onboarding/me');
+          setOnboardingStatus(onboardingData.status);
+        } catch (e) {
+          console.error('Failed to fetch onboarding status', e);
+        }
+      }
+      
       return data;
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Failed to fetch profile.';
       console.error('Error fetching profile:', message);
       toast({ title: "Error", description: message, variant: "destructive" });
       setProfile(null);
+      setOnboardingStatus(null);
       return null;
     } finally {
       setLoadingProfile(false);
@@ -127,7 +140,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       toast({ title: "Sign Up Successful", description: "Your account has been created." });
-      navigate('/');
+      if (options?.data?.user_type === 'supplier') {
+        navigate('/onboarding');
+      } else {
+        navigate('/');
+      }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Sign up failed.';
       toast({ title: "Sign Up Failed", description: message, variant: "destructive" });
@@ -181,6 +198,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setToken(null);
       setUser(null);
       setProfile(null);
+      setOnboardingStatus(null);
       toast({ title: "Signed Out", description: "You have been successfully signed out." });
       navigate('/auth');
     }
@@ -192,6 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     profile,
     loadingInitial,
     loadingProfile,
+    onboardingStatus,
     signUp,
     signInWithPassword,
     signOut,

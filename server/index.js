@@ -17,6 +17,7 @@ const serviceCategoryRoutes = require('./routes/serviceCategories');
 const tenderRoutes = require('./routes/tenders');
 const notificationRoutes = require('./routes/notifications');
 const adminAuthRoutes = require('./routes/adminAuth');
+const adminPortalRoutes = require('./routes/adminPortal');
 const onboardingRoutes = require('./routes/onboarding');
 const bidRoutes = require('./routes/bids');
 
@@ -52,7 +53,7 @@ app.use('/api/profiles', profileRoutes);
 app.use('/api/service-categories', serviceCategoryRoutes);
 app.use('/api/tenders', tenderRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin', adminPortalRoutes);
 app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/bids', bidRoutes);
