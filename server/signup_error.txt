@@ -1,0 +1,4 @@
+error: column "user_type" of relation "profiles" does not exist
+    at /home/unknown/Projects/kenya-tender-eye-open/server/node_modules/pg/lib/client.js:631:17
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async exports.signup (/home/unknown/Projects/kenya-tender-eye-open/server/controllers/authController.js:56:7)
