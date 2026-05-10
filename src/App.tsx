@@ -14,7 +14,6 @@ import AboutPage from "./pages/AboutPage";
 import DocumentationPage from "./pages/DocumentationPage";
 import AuthPage from "./pages/AuthPage"; // Import AuthPage
 import ProfilePage from "./pages/ProfilePage"; // Import ProfilePage
-import AdminApprovalsPage from "./pages/AdminApprovalsPage"; // Import AdminApprovalsPage
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminProtectedRoute from "./components/admin/AdminProtectedRoute";
 import { AdminAuthProvider } from "./contexts/AdminAuthContext";
@@ -79,7 +78,6 @@ const App = () => (
               </AdminAuthProvider>
             }>
               <Route path="dashboard" element={<AdminDashboardPage />} />
-              <Route path="approvals" element={<AdminApprovalsPage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -108,14 +108,6 @@ exports.login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Ensure admins are not stuck in pending state
-    const profileRes = await pool.query('SELECT is_admin, status FROM profiles WHERE id = $1', [user.id]);
-    if (profileRes.rows.length > 0) {
-      const profile = profileRes.rows[0];
-      if (profile.is_admin && profile.status === 'pending') {
-        await pool.query("UPDATE profiles SET status = 'approved' WHERE id = $1", [user.id]);
-      }
-    }
 
     await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [user.id]);
 
