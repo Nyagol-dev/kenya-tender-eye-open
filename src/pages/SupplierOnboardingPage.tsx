@@ -58,18 +58,18 @@ export default function SupplierOnboardingPage() {
   const { user, profile, loadingInitial, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   const [data, setData] = useState<OnboardingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
-  const [timeLeft, setTimeLeft] = useState<{h: number, m: number, s: number, expired: boolean, totalSeconds: number} | null>(null);
-  
+  const [timeLeft, setTimeLeft] = useState<{ h: number, m: number, s: number, expired: boolean, totalSeconds: number } | null>(null);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await api.get<OnboardingData>('/onboarding/me');
       setData(res);
-      
+
       if (res.status === 'approved') {
         toast({ title: "Account Approved", description: "Your account is approved. You can now bid on tenders." });
         navigate('/');
@@ -104,7 +104,7 @@ export default function SupplierOnboardingPage() {
 
   useEffect(() => {
     if (!data?.deadline) return;
-    
+
     const calculateTimeLeft = () => {
       const difference = new Date(data.deadline!).getTime() - new Date().getTime();
       if (difference <= 0) {
@@ -119,7 +119,7 @@ export default function SupplierOnboardingPage() {
         });
       }
     };
-    
+
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
@@ -140,11 +140,11 @@ export default function SupplierOnboardingPage() {
     return `${timeLeft.h.toString().padStart(2, '0')}:${timeLeft.m.toString().padStart(2, '0')}:${timeLeft.s.toString().padStart(2, '0')} remaining`;
   };
 
-  const timerColor = timeLeft 
+  const timerColor = timeLeft
     ? timeLeft.expired ? "text-red-500 font-bold"
       : timeLeft.totalSeconds > 24 * 3600 ? "text-green-600"
-      : timeLeft.totalSeconds > 6 * 3600 ? "text-yellow-600"
-      : "text-red-600 font-bold"
+        : timeLeft.totalSeconds > 6 * 3600 ? "text-yellow-600"
+          : "text-red-600 font-bold"
     : "text-muted-foreground";
 
   return (
@@ -170,11 +170,10 @@ export default function SupplierOnboardingPage() {
           <div className="flex items-center justify-between px-2">
             {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex flex-col items-center">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
-                  step < currentStep ? 'border-primary bg-primary text-primary-foreground' :
-                  step === currentStep ? 'border-primary text-primary' :
-                  'border-muted text-muted-foreground'
-                }`}>
+                <div className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${step < currentStep ? 'border-primary bg-primary text-primary-foreground' :
+                    step === currentStep ? 'border-primary text-primary' :
+                      'border-muted text-muted-foreground'
+                  }`}>
                   {step < currentStep ? <Check className="h-6 w-6" /> : step}
                 </div>
                 <span className={`mt-2 text-xs font-medium ${step === currentStep ? 'text-primary' : 'text-muted-foreground'}`}>
@@ -188,7 +187,7 @@ export default function SupplierOnboardingPage() {
           </div>
           <div className="relative mt-[-2.5rem] -z-10 px-8">
             <div className="h-1 w-full bg-muted">
-              <div 
+              <div
                 className="h-1 bg-primary transition-all duration-500 ease-in-out"
                 style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
               />
@@ -252,38 +251,38 @@ function Step1({ data, onNext }: { data: OnboardingData | null, onNext: () => vo
         <CardContent className="space-y-4">
           <div className="grid gap-2">
             <Label htmlFor="business_name">Business/Company Name *</Label>
-            <Input id="business_name" required value={formData.business_name} onChange={e => setFormData({...formData, business_name: e.target.value})} />
+            <Input id="business_name" required value={formData.business_name} onChange={e => setFormData({ ...formData, business_name: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="business_type">Business Type *</Label>
-              <Select value={formData.business_type} onValueChange={(val) => setFormData({...formData, business_type: val})} required>
+              <Select value={formData.business_type} onValueChange={(val) => setFormData({ ...formData, business_type: val })} required>
                 <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Sole Proprietor">Sole Proprietor</SelectItem>
-                  <SelectItem value="Partnership">Partnership</SelectItem>
-                  <SelectItem value="Limited Company">Limited Company</SelectItem>
-                  <SelectItem value="Cooperative">Cooperative</SelectItem>
-                  <SelectItem value="NGO">NGO</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  <SelectItem value="sole_proprietor">Sole Proprietor</SelectItem>
+                  <SelectItem value="partnership">Partnership</SelectItem>
+                  <SelectItem value="limited_company">Limited Company</SelectItem>
+                  <SelectItem value="cooperative">Cooperative</SelectItem>
+                  <SelectItem value="ngo">NGO</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="registration_number">Registration Number *</Label>
-              <Input id="registration_number" required value={formData.registration_number} onChange={e => setFormData({...formData, registration_number: e.target.value})} />
+              <Input id="registration_number" required value={formData.registration_number} onChange={e => setFormData({ ...formData, registration_number: e.target.value })} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="kra_pin">KRA PIN *</Label>
-              <Input id="kra_pin" placeholder="A123456789Z" required value={formData.kra_pin} onChange={e => setFormData({...formData, kra_pin: e.target.value.toUpperCase()})} />
+              <Input id="kra_pin" placeholder="A123456789Z" required value={formData.kra_pin} onChange={e => setFormData({ ...formData, kra_pin: e.target.value.toUpperCase() })} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="years">Years in Operation *</Label>
-              <Input id="years" type="number" min="0" required value={formData.years_in_operation} onChange={e => setFormData({...formData, years_in_operation: e.target.value})} />
+              <Input id="years" type="number" min="0" required value={formData.years_in_operation} onChange={e => setFormData({ ...formData, years_in_operation: e.target.value })} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="employees">Number of Employees *</Label>
-              <Input id="employees" type="number" min="1" required value={formData.number_of_employees} onChange={e => setFormData({...formData, number_of_employees: e.target.value})} />
+              <Input id="employees" type="number" min="1" required value={formData.number_of_employees} onChange={e => setFormData({ ...formData, number_of_employees: e.target.value })} />
             </div>
           </div>
         </CardContent>
@@ -303,21 +302,21 @@ function Step1({ data, onNext }: { data: OnboardingData | null, onNext: () => vo
 function Step2({ data, onNext, onBack }: { data: OnboardingData | null, onNext: () => void, onBack: () => void }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
-  
+  const [categories, setCategories] = useState<{ id: string, name: string }[]>([]);
+
   const [primaryCat, setPrimaryCat] = useState(data?.primary_category_id || '');
   const [secondaryCats, setSecondaryCats] = useState<string[]>(data?.secondary_category_ids || []);
   const [counties, setCounties] = useState<string[]>(data?.counties_of_operation || []);
   const [maxValue, setMaxValue] = useState(data?.max_contract_value?.toString() || '');
 
   useEffect(() => {
-    api.get<{id: string, name: string}[]>('/service-categories').then(setCategories).catch(console.error);
+    api.get<{ id: string, name: string }[]>('/service-categories').then(setCategories).catch(console.error);
   }, []);
 
   const toggleCounty = (c: string) => {
     setCounties(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
   };
-  
+
   const toggleSecondaryCat = (id: string) => {
     setSecondaryCats(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
@@ -359,7 +358,7 @@ function Step2({ data, onNext, onBack }: { data: OnboardingData | null, onNext: 
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="grid gap-2">
             <Label>Secondary Categories (Optional)</Label>
             <div className="grid grid-cols-2 gap-2 border p-4 rounded-md bg-background">
@@ -421,13 +420,13 @@ function Step3({ data, onNext, onBack }: { data: OnboardingData | null, onNext: 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (form.description.length < 50) return toast({ title: "Validation Error", description: "Description must be at least 50 characters.", variant: "destructive" });
-    
+
     const newProj: Project = {
-      title: form.title, client_name: form.client_name, 
-      contract_value: parseFloat(form.contract_value), year: parseInt(form.year), 
+      title: form.title, client_name: form.client_name,
+      contract_value: parseFloat(form.contract_value), year: parseInt(form.year),
       duration_months: parseInt(form.duration_months), description: form.description
     };
-    
+
     setProjects([...projects, newProj]);
     setOpen(false);
     setForm({ title: '', client_name: '', contract_value: '', year: new Date().getFullYear().toString(), duration_months: '', description: '' });
@@ -488,23 +487,23 @@ function Step3({ data, onNext, onBack }: { data: OnboardingData | null, onNext: 
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="p_title">Project Title *</Label>
-                  <Input id="p_title" required value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
+                  <Input id="p_title" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="p_client">Client Name *</Label>
-                  <Input id="p_client" required value={form.client_name} onChange={e => setForm({...form, client_name: e.target.value})} />
+                  <Input id="p_client" required value={form.client_name} onChange={e => setForm({ ...form, client_name: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="p_val">Contract Value (KES) *</Label>
-                    <Input id="p_val" type="number" required min="0" value={form.contract_value} onChange={e => setForm({...form, contract_value: e.target.value})} />
+                    <Input id="p_val" type="number" required min="0" value={form.contract_value} onChange={e => setForm({ ...form, contract_value: e.target.value })} />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="p_year">Year *</Label>
-                    <Select value={form.year} onValueChange={v => setForm({...form, year: v})} required>
+                    <Select value={form.year} onValueChange={v => setForm({ ...form, year: v })} required>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {Array.from({length: 25}, (_, i) => new Date().getFullYear() - i).map(y => (
+                        {Array.from({ length: 25 }, (_, i) => new Date().getFullYear() - i).map(y => (
                           <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
                         ))}
                       </SelectContent>
@@ -513,11 +512,11 @@ function Step3({ data, onNext, onBack }: { data: OnboardingData | null, onNext: 
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="p_dur">Duration (Months) *</Label>
-                  <Input id="p_dur" type="number" required min="1" value={form.duration_months} onChange={e => setForm({...form, duration_months: e.target.value})} />
+                  <Input id="p_dur" type="number" required min="1" value={form.duration_months} onChange={e => setForm({ ...form, duration_months: e.target.value })} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="p_desc">Brief Description (Min 50 chars) *</Label>
-                  <Textarea id="p_desc" required minLength={50} value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
+                  <Textarea id="p_desc" required minLength={50} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
                 </div>
               </div>
               <DialogFooter>
@@ -569,7 +568,7 @@ function Step4({ data, user, onNext, onBack }: { data: OnboardingData | null, us
     try {
       // Fake upload URL
       const fileUrl = `/uploads/${user.id}/${encodeURIComponent(file.name)}`;
-      
+
       const res = await api.post<DocumentData>('/onboarding/documents', {
         document_type: docType,
         file_name: file.name,
@@ -627,7 +626,7 @@ function Step4({ data, user, onNext, onBack }: { data: OnboardingData | null, us
         <div className="space-y-4">
           <h3 className="font-semibold">Required Documents</h3>
           {REQ_DOCS.map(d => <DocSlot key={d.id} doc={d} required docs={docs} uploading={uploadingDoc === d.id} onUpload={e => handleFileUpload(e, d.id)} />)}
-          
+
           <h3 className="font-semibold mt-6">Additional Documents (Optional)</h3>
           {OPT_DOCS.map(d => <DocSlot key={d.id} doc={d} required={false} docs={docs} uploading={uploadingDoc === d.id} onUpload={e => handleFileUpload(e, d.id)} />)}
         </div>
@@ -683,13 +682,13 @@ function StatusPage({ type, reason, onLogout }: { type: 'submitted' | 'rejected'
           {type === 'submitted' && <Clock className="h-16 w-16 text-green-500 mb-4" />}
           {type === 'rejected' && <XCircle className="h-16 w-16 text-red-500 mb-4" />}
           {type === 'expired' && <AlertTriangle className="h-16 w-16 text-orange-500 mb-4" />}
-          
+
           <h2 className="text-2xl font-bold mb-2">
             {type === 'submitted' && "Application Under Review"}
             {type === 'rejected' && "Application Rejected"}
             {type === 'expired' && "Onboarding Period Expired"}
           </h2>
-          
+
           <p className="text-muted-foreground mb-6">
             {type === 'submitted' && "Your application has been submitted and is being reviewed by our team. You will be notified once a decision is made. This typically takes 2-3 business days."}
             {type === 'rejected' && (
