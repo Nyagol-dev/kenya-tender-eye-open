@@ -26,6 +26,12 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- Backfill columns if profiles already existed with an older schema
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS user_type    TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name    TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS entity_name  TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
 -- 3. Remove legacy triggers/functions (now handled in controller)
 DROP TRIGGER IF EXISTS create_profile_on_signup ON users;
 DROP FUNCTION IF EXISTS create_profile_trigger();
