@@ -200,7 +200,7 @@ function OverviewTab({ dashboardData, alertsData, onSwitchToSuppliers, onReviewS
       </div>
 
       {/* TOP ROW STATS */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard title="Total Suppliers" value={dashboardData?.suppliers?.total || 0} subtitle="Approved" />
         <StatCard title="Pending Onboarding" value={dashboardData?.suppliers?.pending_onboarding || 0} subtitle="Requires review" valueColor="text-yellow-600" />
         <StatCard title="Active Tenders" value={dashboardData?.tenders?.open || 0} subtitle="Open for bids" valueColor="text-green-600" />

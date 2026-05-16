@@ -5,7 +5,9 @@ import { Separator } from "@/components/ui/separator";
 import { TenderInfo } from "./TenderCard";
 import TenderStatusBadge from "./TenderStatusBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 interface TimelineEvent {
   date: string;
@@ -18,6 +20,9 @@ interface TenderDetailProps {
 }
 
 const TenderDetail = ({ tender }: TenderDetailProps) => {
+  const { profile, onboardingStatus } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const formattedValue = new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: 'KES',
@@ -77,9 +82,34 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
           </div>
           <p className="text-muted-foreground">Reference: {tender.reference}</p>
         </div>
-        <Button variant="outline" asChild>
-          <Link to="/tenders">Back to Tenders</Link>
-        </Button>
+        <div className="flex gap-4">
+          <Button variant="outline" asChild>
+            <Link to="/tenders">Back to Tenders</Link>
+          </Button>
+          <Button 
+            onClick={() => {
+              if (!profile) {
+                navigate('/auth');
+                return;
+              }
+              if (profile.user_type === 'supplier' && onboardingStatus !== 'approved') {
+                toast({
+                  title: "Action Denied",
+                  description: "Your account is not fully approved. You cannot submit bids at this time.",
+                  variant: "destructive"
+                });
+                return;
+              }
+              // Proceed with bid logic
+              toast({
+                title: "Bid Process Started",
+                description: "Bid submission modal will open here.",
+              });
+            }}
+          >
+            Submit Bid
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="details" className="w-full">

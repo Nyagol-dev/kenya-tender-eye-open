@@ -33,7 +33,7 @@ const Navbar = () => {
         </div>
         
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <div className="relative w-full max-w-sm md:max-w-md lg:max-w-lg hidden md:flex">
+          <div className="relative w-full max-w-[130px] sm:max-w-sm md:max-w-md lg:max-w-lg flex">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"

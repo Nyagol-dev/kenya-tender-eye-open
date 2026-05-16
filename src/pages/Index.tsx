@@ -24,7 +24,7 @@ const Index = () => {
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
             Transparent procurement for efficient government spending and public accountability
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full px-4 sm:px-0">
             <Button size="lg" asChild>
               <Link to="/tenders">Browse Tenders</Link>
             </Button>

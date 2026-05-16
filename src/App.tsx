@@ -41,7 +41,7 @@ const SupplierProtectedRoute = ({ children }: { children: React.ReactNode }) => 
   
   if (loadingInitial || loadingProfile) return null; // or a loading spinner
   
-  if (profile?.user_type === 'supplier' && onboardingStatus !== 'approved') {
+  if (profile?.user_type === 'supplier' && (onboardingStatus === 'pending' || onboardingStatus === 'expired' || onboardingStatus === 'rejected')) {
     return <Navigate to="/onboarding" replace />;
   }
   
