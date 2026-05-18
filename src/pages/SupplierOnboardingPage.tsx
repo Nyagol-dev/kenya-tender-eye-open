@@ -440,7 +440,16 @@ function Step3({ data, onNext, onBack }: { data: OnboardingData | null, onNext: 
     if (projects.length === 0) return toast({ title: "Required", description: "Please add at least one project.", variant: "destructive" });
     try {
       setLoading(true);
-      await api.patch('/onboarding/step/3', { projects });
+      // Format the data to match backend expectations exactly
+      const formattedProjects = projects.map(p => ({
+        title: p.title,
+        client: p.client_name,        // Maps client_name -> client
+        value: p.contract_value,      // Maps contract_value -> value
+        year: p.year,
+        duration_months: p.duration_months,
+        description: p.description
+      }));
+      await api.patch('/onboarding/step/3', { projects: formattedProjects });
       onNext();
     } catch (e: any) {
       toast({ title: "Error", description: e.message || "Failed to save data", variant: "destructive" });
