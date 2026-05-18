@@ -171,8 +171,8 @@ export default function SupplierOnboardingPage() {
             {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex flex-col items-center">
                 <div className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${step < currentStep ? 'border-primary bg-primary text-primary-foreground' :
-                    step === currentStep ? 'border-primary text-primary' :
-                      'border-muted text-muted-foreground'
+                  step === currentStep ? 'border-primary text-primary' :
+                    'border-muted text-muted-foreground'
                   }`}>
                   {step < currentStep ? <Check className="h-6 w-6" /> : step}
                 </div>
@@ -326,8 +326,8 @@ function Step2({ data, onNext, onBack }: { data: OnboardingData | null, onNext: 
     try {
       setLoading(true);
       await api.patch('/onboarding/step/2', {
-        primary_category_id: primaryCat,
-        secondary_category_ids: secondaryCats,
+        primary_service_category_id: primaryCat,
+        secondary_categories: secondaryCats,
         counties_of_operation: counties,
         max_contract_value: parseFloat(maxValue) || 0,
       });
