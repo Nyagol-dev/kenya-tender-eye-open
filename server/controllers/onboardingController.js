@@ -218,10 +218,10 @@ exports.uploadDocument = async (req, res) => {
     );
 
     const result = await client.query(
-      `INSERT INTO onboarding_documents (onboarding_id, document_type, file_name, file_url, file_size_bytes, mime_type)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO onboarding_documents (onboarding_id,user_id, document_type, file_name, file_url, file_size_bytes, mime_type)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [onboarding.id, document_type, file_name, file_url, file_size_bytes, mime_type]
+      [onboarding.id, userId, document_type, file_name, file_url, file_size_bytes, mime_type]
     );
 
     await client.query('COMMIT');

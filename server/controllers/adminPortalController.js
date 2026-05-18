@@ -488,3 +488,19 @@ exports.getDocument = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getActivity = async (req, res, next) => {
+  try {
+    const result = await pool.query(`
+      SELECT l.*, a.full_name as admin_name
+      FROM admin_activity_log l
+      LEFT JOIN admin_users a ON l.admin_id = a.id
+      ORDER BY l.created_at DESC
+      LIMIT 100
+    `);
+    res.json({ activity: result.rows });
+  } catch (err) {
+    next(err);
+  }
+};
+

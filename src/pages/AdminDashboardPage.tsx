@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi, clearAdminToken } from '../lib/adminApi';
 import {
   LayoutDashboard,
@@ -19,6 +19,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { AdminSupplierDetailDrawer } from '../components/admin/AdminSupplierDetailDrawer';
 import { AdminBidDetailDrawer } from '../components/admin/AdminBidDetailDrawer';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../components/ui/dialog';
 
 export function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -534,10 +541,35 @@ function BidsTab({ onViewDetails }: { onViewDetails: (id: string) => void }) {
 }
 
 function TendersTab({ onFilterBids }: { onFilterBids: (tenderId: string) => void }) {
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const queryClient = useQueryClient();
+
   const { data, isLoading } = useQuery({
     queryKey: ['admin_tenders'],
     queryFn: () => adminApi.get<any>('/tenders'), // Assuming /admin/tenders or we reuse main api
   });
+
+  const handleCreateTender = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const payload = {
+      title: formData.get('title'),
+      reference_number: formData.get('reference_number'),
+      description: formData.get('description'),
+      sector: formData.get('sector'),
+      value: Number(formData.get('value')),
+      closing_date: formData.get('closing_date'),
+    };
+    try {
+      await adminApi.post('/tenders', payload);
+      queryClient.invalidateQueries({ queryKey: ['admin_tenders'] });
+      setIsCreateModalOpen(false);
+      form.reset();
+    } catch (err) {
+      console.error('Failed to create tender:', err);
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-full flex flex-col">
@@ -546,7 +578,7 @@ function TendersTab({ onFilterBids }: { onFilterBids: (tenderId: string) => void
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tenders Overview</h1>
           <p className="text-slate-500 text-sm mt-1">Quick view of all system tenders.</p>
         </div>
-        <Button>Create Tender</Button>
+        <Button onClick={() => setIsCreateModalOpen(true)}>Create Tender</Button>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-slate-200 flex-1 overflow-hidden flex flex-col">
@@ -593,6 +625,53 @@ function TendersTab({ onFilterBids }: { onFilterBids: (tenderId: string) => void
           </table>
         </div>
       </div>
+
+      {/* Create Tender Dialog */}
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent className="sm:max-w-[560px]">
+          <DialogHeader>
+            <DialogTitle>Create New Tender</DialogTitle>
+          </DialogHeader>
+          <form id="create-tender-form" onSubmit={handleCreateTender} className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2 space-y-1">
+                <label className="text-sm font-medium text-slate-700" htmlFor="tender-title">Title</label>
+                <Input id="tender-title" name="title" placeholder="e.g. Supply of Office Equipment" required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700" htmlFor="tender-ref">Reference Number</label>
+                <Input id="tender-ref" name="reference_number" placeholder="e.g. KTE/2026/001" required />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700" htmlFor="tender-sector">Sector</label>
+                <Input id="tender-sector" name="sector" placeholder="e.g. Health, IT, Construction" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700" htmlFor="tender-value">Estimated Value (KES)</label>
+                <Input id="tender-value" name="value" type="number" min="0" placeholder="e.g. 5000000" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700" htmlFor="tender-closing">Closing Date</label>
+                <Input id="tender-closing" name="closing_date" type="date" required />
+              </div>
+              <div className="col-span-2 space-y-1">
+                <label className="text-sm font-medium text-slate-700" htmlFor="tender-desc">Description</label>
+                <textarea
+                  id="tender-desc"
+                  name="description"
+                  rows={4}
+                  placeholder="Detailed description of the tender requirements..."
+                  className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none"
+                />
+              </div>
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="outline" type="button" onClick={() => setIsCreateModalOpen(false)}>Cancel</Button>
+            <Button type="submit" form="create-tender-form">Create Tender</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

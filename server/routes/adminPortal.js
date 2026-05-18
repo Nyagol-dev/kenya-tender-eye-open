@@ -15,5 +15,6 @@ router.get('/bids', adminPortalController.listBids);
 router.get('/bids/:bidId', adminPortalController.getBidDetail);
 router.post('/bids/:bidId/review', adminPortalController.reviewBid);
 router.get('/documents/:documentId', adminPortalController.getDocument);
+router.get('/activity', adminPortalController.getActivity);
 
 module.exports = router;

@@ -262,9 +262,9 @@ export function AdminSupplierDetailDrawer({
         ) : null}
 
         {/* Sticky Bottom Action Bar */}
-        {supplier && (
+        {supplierData && (
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t flex justify-end gap-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-            {supplier.status === 'submitted' && (
+            {supplierData.status === 'submitted' && (
               <>
                 <Button 
                   variant="outline" 
@@ -279,7 +279,7 @@ export function AdminSupplierDetailDrawer({
                   onClick={handleApprove}
                   disabled={reviewMutation.isPending}
                 >
-                  {reviewMutation.isPending && reviewMutation.variables?.decision === 'approve' ? (
+                  {reviewMutation.isPending && reviewMutation.variables?.decision === 'approved' ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
                     <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -289,7 +289,7 @@ export function AdminSupplierDetailDrawer({
               </>
             )}
 
-            {supplier.status === 'approved' && (
+            {supplierData.status === 'approved' && (
               <div className="flex items-center gap-4 w-full justify-between">
                 <span className="text-sm font-medium text-green-600 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4" /> This supplier is approved
@@ -304,21 +304,21 @@ export function AdminSupplierDetailDrawer({
               </div>
             )}
 
-            {supplier.status === 'rejected' && (
+            {supplierData.status === 'rejected' && (
               <div className="flex items-center gap-4 w-full">
                 <span className="text-sm font-medium text-red-600 flex items-center gap-2">
                   <XCircle className="h-4 w-4" /> Rejected
                 </span>
                 <span className="text-sm text-gray-600 italic">
-                  Reason: {supplier.rejection_reason || 'No reason provided'}
+                  Reason: {supplierData.rejection_reason || 'No reason provided'}
                 </span>
               </div>
             )}
             
-            {supplier.status === 'pending' && (
+            {supplierData.status === 'pending' && (
                <div className="flex items-center gap-4 w-full">
                 <span className="text-sm font-medium text-gray-500">
-                  Onboarding in progress ({supplier.current_step || 1}/4)
+                  Onboarding in progress ({supplierData.current_step || 1}/4)
                 </span>
               </div>
             )}

@@ -549,18 +549,18 @@ function Step3({ data, onNext, onBack }: { data: OnboardingData | null, onNext: 
 // STEP 4: DOCUMENTS
 // -----------------------------------------------------------------------------
 const REQ_DOCS = [
-  { id: 'Certificate of Incorporation', label: 'Certificate of Incorporation / Business Registration' },
-  { id: 'Tax Compliance', label: 'KRA Tax Compliance Certificate' },
-  { id: 'National ID', label: 'Director/Proprietor National ID' }
+  { id: 'certificate_of_incorporation', label: 'Certificate of Incorporation / Business Registration' },
+  { id: 'kra_tax_compliance', label: 'KRA Tax Compliance Certificate' },
+  { id: 'director_id', label: 'Director/Proprietor National ID' }
 ];
 
 const OPT_DOCS = [
-  { id: 'CR12', label: 'CR12 Form (Limited Companies)' },
-  { id: 'Financial Accounts', label: 'Audited Financial Accounts (Last 2 Years)' },
-  { id: 'Bank Statement', label: 'Bank Statement (Last 6 months)' },
-  { id: 'Business Permit', label: 'Business Permit' },
-  { id: 'Evidence of Contracts', label: 'Evidence of Previous Contracts' },
-  { id: 'NCA Certificate', label: 'NCA Certificate (Construction)' }
+  { id: 'cr12_form', label: 'CR12 Form (Limited Companies)' },
+  { id: 'audited_accounts', label: 'Audited Financial Accounts (Last 2 Years)' },
+  { id: 'bank_statement', label: 'Bank Statement (Last 6 months)' },
+  { id: 'business_permit', label: 'Business Permit' },
+  { id: 'previous_contract_evidence', label: 'Evidence of Previous Contracts' },
+  { id: 'nca_certificate', label: 'NCA Certificate (Construction)' }
 ];
 
 function Step4({ data, user, onNext, onBack }: { data: OnboardingData | null, user: any, onNext: () => void, onBack: () => void }) {
@@ -581,7 +581,9 @@ function Step4({ data, user, onNext, onBack }: { data: OnboardingData | null, us
       const res = await api.post<DocumentData>('/onboarding/documents', {
         document_type: docType,
         file_name: file.name,
-        file_url: fileUrl
+        file_url: fileUrl,
+        file_size_bytes: file.size,
+        mime_type: file.type
       });
 
       setDocs(prev => {
