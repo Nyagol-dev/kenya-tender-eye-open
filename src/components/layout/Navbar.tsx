@@ -1,9 +1,9 @@
 
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Search, UserCircle, LogOut, LogIn } from 'lucide-react';
+import { Search, UserCircle, LogOut, LogIn, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
 import { NotificationBell } from './NotificationBell';
 import {
   DropdownMenu,
@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
-  const { user, signOut, loadingInitial } = useAuth();
+  const { user, signOut, loadingInitial, profile } = useAuth();
   const { pathname } = useLocation();
+
+  const isGovEntity = profile?.user_type === 'government_entity';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-kenya-black/10 bg-white">
@@ -49,6 +51,20 @@ const Navbar = () => {
             >
               <Link to="/tenders">Tenders</Link>
             </Button>
+
+            {isGovEntity && (
+              <Button
+                variant={pathname.startsWith('/entity-portal') ? "default" : "ghost"}
+                asChild
+                className="hidden sm:inline-flex"
+              >
+                <Link to="/entity-portal">
+                  <Building2 className="mr-1.5 h-4 w-4" />
+                  My Portal
+                </Link>
+              </Button>
+            )}
+
             <Button 
               variant={pathname.startsWith('/suppliers') ? "default" : "ghost"} 
               asChild 
@@ -76,28 +92,36 @@ const Navbar = () => {
                       <span className="sr-only">User menu</span>
                     </Button>
                   </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="sm:hidden" asChild>
-                     <Link to="/tenders">Tenders</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="sm:hidden" asChild>
-                     <Link to="/suppliers">Suppliers</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="md:hidden" asChild>
-                     <Link to="/about">About</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="text-red-600">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile">Profile</Link>
+                    </DropdownMenuItem>
+                    {isGovEntity && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/entity-portal">
+                          <Building2 className="mr-2 h-4 w-4" />
+                          Entity Portal
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem className="sm:hidden" asChild>
+                      <Link to="/tenders">Tenders</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="sm:hidden" asChild>
+                      <Link to="/suppliers">Suppliers</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="md:hidden" asChild>
+                      <Link to="/about">About</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={signOut} className="text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ) : (
               <Button asChild>

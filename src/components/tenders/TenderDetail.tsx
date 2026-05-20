@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -7,7 +8,7 @@ import TenderStatusBadge from "./TenderStatusBadge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
+import { BidSubmitModal } from "@/components/tenders/BidSubmitModal";
 
 interface TimelineEvent {
   date: string;
@@ -20,15 +21,24 @@ interface TenderDetailProps {
 }
 
 const TenderDetail = ({ tender }: TenderDetailProps) => {
-  const { profile, onboardingStatus } = useAuth();
+  const { profile, onboardingStatus, user } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const [bidModalOpen, setBidModalOpen] = useState(false);
+
   const formattedValue = new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(tender.value);
+
+  const handleBidClick = () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    setBidModalOpen(true);
+  };
 
   // Mock timeline events
   const timelineEvents: TimelineEvent[] = [
@@ -54,7 +64,6 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
     }
   ];
 
-  // For awarded tenders, add award event
   if (tender.status === "awarded" || tender.status === "completed") {
     timelineEvents.push({
       date: "2023-05-25",
@@ -63,7 +72,6 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
     });
   }
 
-  // For completed tenders, add completion event
   if (tender.status === "completed") {
     timelineEvents.push({
       date: "2023-09-15",
@@ -71,6 +79,8 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
       description: "Project successfully completed and verified."
     });
   }
+
+  const canBid = tender.status === "open";
 
   return (
     <div className="space-y-8">
@@ -86,29 +96,11 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
           <Button variant="outline" asChild>
             <Link to="/tenders">Back to Tenders</Link>
           </Button>
-          <Button 
-            onClick={() => {
-              if (!profile) {
-                navigate('/auth');
-                return;
-              }
-              if (profile.user_type === 'supplier' && onboardingStatus !== 'approved') {
-                toast({
-                  title: "Action Denied",
-                  description: "Your account is not fully approved. You cannot submit bids at this time.",
-                  variant: "destructive"
-                });
-                return;
-              }
-              // Proceed with bid logic
-              toast({
-                title: "Bid Process Started",
-                description: "Bid submission modal will open here.",
-              });
-            }}
-          >
-            Submit Bid
-          </Button>
+          {canBid && (
+            <Button onClick={handleBidClick}>
+              Submit Bid
+            </Button>
+          )}
         </div>
       </div>
 
@@ -253,37 +245,20 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-md">
-                  <div className="space-y-1">
-                    <p className="font-medium">Tender Notice</p>
-                    <p className="text-sm text-muted-foreground">PDF • 2.4 MB • Uploaded April 10, 2023</p>
+                {[
+                  { name: "Tender Notice", size: "2.4 MB", date: "April 10, 2023" },
+                  { name: "Technical Specifications", size: "18.7 MB", date: "April 10, 2023" },
+                  { name: "Bill of Quantities", size: "4.1 MB", date: "April 10, 2023" },
+                  { name: "Addendum #1", size: "1.2 MB", date: "April 25, 2023" },
+                ].map((doc) => (
+                  <div key={doc.name} className="flex items-center justify-between p-4 border rounded-md">
+                    <div className="space-y-1">
+                      <p className="font-medium">{doc.name}</p>
+                      <p className="text-sm text-muted-foreground">PDF • {doc.size} • Uploaded {doc.date}</p>
+                    </div>
+                    <Button variant="outline">Download</Button>
                   </div>
-                  <Button variant="outline">Download</Button>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-md">
-                  <div className="space-y-1">
-                    <p className="font-medium">Technical Specifications</p>
-                    <p className="text-sm text-muted-foreground">PDF • 18.7 MB • Uploaded April 10, 2023</p>
-                  </div>
-                  <Button variant="outline">Download</Button>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-md">
-                  <div className="space-y-1">
-                    <p className="font-medium">Bill of Quantities</p>
-                    <p className="text-sm text-muted-foreground">XLSX • 4.1 MB • Uploaded April 10, 2023</p>
-                  </div>
-                  <Button variant="outline">Download</Button>
-                </div>
-                
-                <div className="flex items-center justify-between p-4 border rounded-md">
-                  <div className="space-y-1">
-                    <p className="font-medium">Addendum #1</p>
-                    <p className="text-sm text-muted-foreground">PDF • 1.2 MB • Uploaded April 25, 2023</p>
-                  </div>
-                  <Button variant="outline">Download</Button>
-                </div>
+                ))}
 
                 {tender.status === "awarded" && (
                   <div className="flex items-center justify-between p-4 border rounded-md">
@@ -299,6 +274,14 @@ const TenderDetail = ({ tender }: TenderDetailProps) => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <BidSubmitModal
+        open={bidModalOpen}
+        onOpenChange={setBidModalOpen}
+        tenderId={tender.id}
+        tenderTitle={tender.title}
+        tenderValue={tender.value}
+      />
     </div>
   );
 };
