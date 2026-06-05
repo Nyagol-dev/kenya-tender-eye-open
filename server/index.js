@@ -29,6 +29,21 @@ const fs = require('fs');
       logger.info('Ran migration 005_admin_onboarding_bids.sql');
     }
 
+    // 1b. Run 006 bid-onboarding migration if it hasn't run
+    const bidAppCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'bid_applications'
+      );
+    `);
+
+    if (!bidAppCheck.rows[0].exists) {
+      const sql006 = fs.readFileSync(path.join(__dirname, 'db/migrations/006_bid_onboarding.sql'), 'utf-8');
+      await pool.query(sql006);
+      logger.info('Ran migration 006_bid_onboarding.sql');
+    }
+
     // 2. Seed service categories
     const { rows } = await pool.query('SELECT count(*) FROM service_categories');
     if (parseInt(rows[0].count) === 0) {
@@ -52,6 +67,7 @@ const adminAuthRoutes = require('./routes/adminAuth');
 const adminPortalRoutes = require('./routes/adminPortal');
 const onboardingRoutes = require('./routes/onboarding');
 const bidRoutes = require('./routes/bids');
+const bidApplicationRoutes = require('./routes/bidApplications');
 
 const authenticate = require('./middleware/authenticate');
 const errorHandler = require('./middleware/errorHandler');
@@ -89,6 +105,7 @@ app.use('/api/admin/auth', adminAuthRoutes);
 app.use('/api/admin', adminPortalRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/bids', bidRoutes);
+app.use('/api/bid-applications', bidApplicationRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 
