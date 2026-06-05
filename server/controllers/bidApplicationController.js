@@ -453,3 +453,49 @@ exports.submitBidApplication = async (req, res, next) => {
     client.release();
   }
 };
+
+// ---------------------------------------------------------------------------
+// GET /api/bid-applications/check?tender_id=UUID
+// Returns existing application for authenticated user+tender, or null
+// ---------------------------------------------------------------------------
+exports.checkExistingApplication = async (req, res, next) => {
+  const { tender_id } = req.query;
+  const supplierId = req.user.id;
+
+  if (!tender_id) {
+    return res.status(400).json({ error: 'tender_id query parameter is required' });
+  }
+
+  try {
+    const appRes = await pool.query(
+      `SELECT ba.*,
+              t.title            AS tender_title,
+              t.reference_number AS tender_reference_number,
+              t.closing_date     AS tender_closing_date
+       FROM bid_applications ba
+       JOIN tenders t ON t.id = ba.tender_id
+       WHERE ba.tender_id = $1 AND ba.supplier_id = $2`,
+      [tender_id, supplierId]
+    );
+
+    if (appRes.rows.length === 0) {
+      return res.json(null);
+    }
+
+    const application = appRes.rows[0];
+
+    const docsRes = await pool.query(
+      `SELECT * FROM bid_application_documents
+       WHERE application_id = $1
+       ORDER BY uploaded_at ASC`,
+      [application.id]
+    );
+
+    application.documents = docsRes.rows;
+
+    return res.json(application);
+  } catch (err) {
+    logger.error({ msg: 'checkExistingApplication error', error: err.message });
+    return next(err);
+  }
+};

@@ -10,6 +10,7 @@ router.post('/mpesa-callback', bidAppController.mpesaCallback);
 router.use(authenticate);
 
 router.post('/', bidAppController.initiateBidApplication);
+router.get('/check', authenticate, bidAppController.checkExistingApplication);
 router.get('/tender/:tenderId', bidAppController.getMyApplicationByTender);
 router.get('/:applicationId', bidAppController.getMyApplication);
 router.post('/:applicationId/documents', bidAppController.uploadBidDocument);
