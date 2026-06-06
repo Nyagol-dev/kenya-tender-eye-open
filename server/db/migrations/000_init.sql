@@ -1,27 +1,6 @@
--- ============================================================================
--- 000_init.sql  –  Baseline schema for kenya-tender-eye
--- Creates the foundational tables that all subsequent migrations depend on
--- but were never explicitly created in any migration file.
--- ============================================================================
 
 BEGIN;
 
--- --------------------------------------------------------------------------
--- Note: gen_random_uuid() is a built-in function since PostgreSQL 13.
--- No extensions required.
--- --------------------------------------------------------------------------
-
--- --------------------------------------------------------------------------
--- 1. users  (core identity table, referenced by every other table)
---
---    Columns derived from:
---      - authController.js   → INSERT (email, password_hash, full_name, user_type, entity_name)
---      - authController.js   → SELECT * FROM users  (login reads password_hash)
---      - tenderController.js → JOIN users for entity_name
---      - adminPortalController.js → SELECT id, email, entity_name, created_at
---      - 001_fix_redundancy.sql   → ALTER TABLE users DROP COLUMN service_category_id
---                                   (the column must exist to be dropped)
--- --------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
   id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   email               TEXT        NOT NULL UNIQUE,
