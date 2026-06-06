@@ -1,6 +1,7 @@
 const pool = require('../db/pool');
 const logger = require('../lib/logger');
 const mpesa = require('../lib/mpesa');
+const { sanitizePhoneNumber } = require('../lib/phoneUtils');
 
 // ---------------------------------------------------------------------------
 // POST /api/bid-applications
@@ -12,6 +13,14 @@ exports.initiateBidApplication = async (req, res, next) => {
 
   if (!tender_id || !phone_number) {
     return res.status(400).json({ error: 'tender_id and phone_number are required' });
+  }
+
+  // Sanitise + validate phone number to the 254XXXXXXXXX format required by Daraja.
+  let sanitizedPhone;
+  try {
+    sanitizedPhone = sanitizePhoneNumber(phone_number);
+  } catch (phoneErr) {
+    return res.status(400).json({ error: phoneErr.message });
   }
 
   try {
@@ -68,10 +77,12 @@ exports.initiateBidApplication = async (req, res, next) => {
       if (existing.status === 'payment_pending') {
         // Re-initiate STK Push for the existing application
         const stkResponse = await mpesa.initiateSTKPush({
-          phoneNumber: phone_number,
+          phoneNumber: sanitizedPhone,   // 254XXXXXXXXX — Daraja-compliant
           amount: 1000,
-          accountReference: tender.reference_number || tender_id,
-          transactionDesc: 'Bid Processing Fee',
+          // Daraja enforces ≤12 chars for AccountReference
+          accountReference: (tender.reference_number || tender_id).slice(0, 12),
+          // Daraja enforces ≤13 chars for TransactionDesc
+          transactionDesc: 'Bid Fee',
         });
 
         await pool.query(
@@ -100,10 +111,12 @@ exports.initiateBidApplication = async (req, res, next) => {
 
     // 5. Initiate M-Pesa STK Push
     const stkResponse = await mpesa.initiateSTKPush({
-      phoneNumber: phone_number,
+      phoneNumber: sanitizedPhone,       // 254XXXXXXXXX — Daraja-compliant
       amount: 1000,
-      accountReference: tender.reference_number || tender_id,
-      transactionDesc: 'Bid Processing Fee',
+      // Daraja enforces ≤12 chars for AccountReference
+      accountReference: (tender.reference_number || tender_id).slice(0, 12),
+      // Daraja enforces ≤13 chars for TransactionDesc
+      transactionDesc: 'Bid Fee',
     });
 
     // 6. Persist the CheckoutRequestID

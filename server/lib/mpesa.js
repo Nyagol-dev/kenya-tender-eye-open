@@ -14,25 +14,105 @@ const logger = require('./logger');
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** Default request timeout for Daraja calls (30 seconds). */
+const MPESA_TIMEOUT_MS = 30_000;
+
 /**
- * Lightweight HTTPS JSON request using built-in `https` module.
- * Returns a Promise that resolves with the parsed JSON body.
+ * Heavily-defensive HTTPS JSON request for the Daraja API.
+ *
+ * Handles every known Daraja Sandbox quirk:
+ *  – Empty-string response bodies (status 400 / 401 / 503)
+ *  – Non-JSON error pages (HTML 502 from reverse-proxy)
+ *  – Hung connections (30-second timeout)
+ *
+ * The resolved value is always `{ statusCode, body }`.
+ * On any failure the rejected Error carries `.statusCode` and `.endpoint`
+ * properties for structured upstream handling.
+ *
+ * @param {string|URL} url
+ * @param {import('https').RequestOptions} options
+ * @param {string|Object} [body]
+ * @returns {Promise<{ statusCode: number, body: Object }>}
  */
 function httpsRequest(url, options, body) {
+  const endpoint = typeof url === 'string' ? url : url.toString();
+
   return new Promise((resolve, reject) => {
+    /** Helper: build an Error with extra context fields. */
+    const fail = (message, statusCode) => {
+      const err = new Error(message);
+      err.statusCode = statusCode ?? 0;
+      err.endpoint = endpoint;
+      return err;
+    };
+
+    logger.debug({ msg: '[M-Pesa] request →', method: options.method ?? 'GET', endpoint });
+
     const req = https.request(url, options, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
+
       res.on('end', () => {
-        try {
-          resolve({ statusCode: res.statusCode, body: JSON.parse(data) });
-        } catch (err) {
-          reject(new Error(`Failed to parse M-Pesa response: ${data}`));
+        // ----- Guard 1: completely empty body --------------------------------
+        if (!data || !data.trim()) {
+          const msg =
+            `Daraja API returned an empty body with status ${res.statusCode} — endpoint: ${endpoint}`;
+          logger.error({
+            msg: '[M-Pesa] Empty response',
+            statusCode: res.statusCode,
+            endpoint,
+          });
+          return reject(fail(msg, res.statusCode));
         }
+
+        // ----- Guard 2: non-JSON body (HTML error pages, plain text, etc.) ---
+        let parsed;
+        try {
+          parsed = JSON.parse(data);
+        } catch (parseErr) {
+          const snippet = data.slice(0, 300).replace(/\n/g, ' ');
+          const msg =
+            `Failed to parse Daraja JSON from ${endpoint} ` +
+            `(status ${res.statusCode}): ${snippet}`;
+          logger.error({
+            msg: '[M-Pesa] JSON parse error',
+            statusCode: res.statusCode,
+            endpoint,
+            rawBody: data.slice(0, 500),
+            parseError: parseErr.message,
+          });
+          return reject(fail(msg, res.statusCode));
+        }
+
+        // ----- Success: surface status code to callers -----------------------
+        resolve({ statusCode: res.statusCode, body: parsed });
       });
     });
 
-    req.on('error', reject);
+    // ----- Guard 3: timeout --------------------------------------------------
+    req.setTimeout(MPESA_TIMEOUT_MS, () => {
+      req.destroy();
+      const msg =
+        `Daraja API request timed out after ${MPESA_TIMEOUT_MS}ms — endpoint: ${endpoint}`;
+      logger.error({ msg: '[M-Pesa] Timeout', endpoint, timeoutMs: MPESA_TIMEOUT_MS });
+      reject(fail(msg, 504));
+    });
+
+    // ----- Guard 4: network / TLS / DNS errors -------------------------------
+    req.on('error', (err) => {
+      // If we already destroyed via timeout, the error is ECONNRESET — skip
+      // duplicate rejection by checking if the promise was already settled.
+      logger.error({
+        msg: '[M-Pesa] Network error',
+        endpoint,
+        error: err.message,
+        code: err.code,
+      });
+      reject(fail(
+        `M-Pesa network error for ${endpoint}: ${err.message}`,
+        err.code === 'ECONNREFUSED' ? 503 : 0,
+      ));
+    });
 
     if (body) {
       req.write(typeof body === 'string' ? body : JSON.stringify(body));
