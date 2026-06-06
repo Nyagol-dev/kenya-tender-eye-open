@@ -21,14 +21,14 @@ const streams = [
   { level: 'info', stream: combinedStream },
 ];
 
-// In development, add a pretty console transport
+// In development, add a pretty console stream
+// NOTE: pino.transport() creates a worker thread that can't be mixed with pino.multistream().
+// Instead, use pino-pretty directly as a transform stream.
 if (!isProd) {
+  const pinoPretty = require('pino-pretty');
   streams.unshift({
     level: 'debug',
-    stream: pino.transport({
-      target: 'pino-pretty',
-      options: { colorize: true },
-    }),
+    stream: pinoPretty({ colorize: true }),
   });
 }
 
